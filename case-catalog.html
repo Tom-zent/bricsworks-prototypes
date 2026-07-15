@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>REF-2932 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그 v5</title>
+<title>REF-2932 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그 v6</title>
 <style>
   :root{
     --primary:#4B3FD3; --primary-fg:#F9FAFB; --destructive:#EF4444;
@@ -14,8 +14,9 @@
   body{margin:0; background:var(--bg); color:var(--text);
     font-family:'BZNAVSans','Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif; font-size:14px;}
   .mono{font-family:'D2Coding',Menlo,Consolas,monospace;}
-  .devnote{background:#111827; color:#9CA3AF; font-size:12px; padding:8px 16px; display:flex; justify-content:space-between; position:sticky; top:0; z-index:70;}
-  .devnote b{color:#fff;}
+  .devnote{background:#111827; color:#9CA3AF; font-size:12px; padding:8px 20px; display:flex; justify-content:space-between; align-items:center; gap:24px; position:sticky; top:0; z-index:70;}
+  .devnote span{flex:1;}
+  .devnote b{color:#fff; white-space:nowrap; padding-left:12px;}
   .wrap{max-width:1260px; margin:0 auto; padding:24px;}
   h1{font-size:20px; margin:0 0 6px;}
   .sub{color:var(--sub); font-size:13px; margin-bottom:20px; line-height:1.7;}
@@ -29,8 +30,9 @@
   .position-note{background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px; margin-bottom:30px; font-size:13px; line-height:1.8;}
   .position-note b{color:var(--primary);}
   .btnrow-demo{display:flex; gap:8px; margin-top:10px;}
-  .btnrow-demo span{border-radius:6px; padding:8px 14px; font-size:12.5px; background:var(--primary); color:#fff; font-weight:600;}
-  .btnrow-demo span.highlight{outline:2px solid #C7D2FE; outline-offset:2px;}
+  .btnrow-demo span{border-radius:6px; padding:8px 14px; font-size:12.5px; font-weight:600;}
+  .btnrow-demo span.on{background:var(--primary); color:#fff;}
+  .btnrow-demo span.off{background:#F3F4F6; color:#B0B4BB;}
   .case{background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); margin-bottom:26px; overflow:hidden;}
   .case-head{display:flex; align-items:center; gap:10px; padding:14px 20px; border-bottom:1px solid var(--border); background:#FAFAFA;}
   .case-no{width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; flex-shrink:0;}
@@ -44,36 +46,36 @@
   .case-spec th{width:96px; text-align:left; color:var(--sub); font-weight:600; padding:7px 10px 7px 0; vertical-align:top; font-size:12.5px;}
   .case-spec td{padding:7px 0; line-height:1.65;}
   .case-spec .msg{background:#F9FAFB; border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 11px; font-size:12.5px; display:inline-block;}
-  .case-ui{width:460px; flex-shrink:0; padding:18px 20px; background:#F3F4F6; display:flex; align-items:flex-start; justify-content:center;}
+  .case-ui{width:440px; flex-shrink:0; padding:18px 20px; background:#F3F4F6; display:flex; align-items:flex-start; justify-content:center;}
   .mm{width:400px; background:#fff; border-radius:var(--radius-lg); box-shadow:0 8px 24px rgba(0,0,0,.12); overflow:hidden; font-size:13px;}
-  .mm-head{padding:14px 18px 8px; display:flex; justify-content:space-between; align-items:center;}
+  .mm-head{padding:16px 18px 8px; display:flex; justify-content:space-between; align-items:center;}
   .mm-head h3{margin:0; font-size:14.5px; font-weight:700;}
   .mm-head .x{color:var(--sub); font-size:15px;}
-  .mm-badgerow{padding:0 18px 10px; display:flex; align-items:center; gap:7px;}
-  .vbadge{font-size:11px; padding:3px 9px; border-radius:20px; font-weight:700;}
+  .mm-badgerow{padding:0 18px 12px; display:flex; align-items:center; gap:7px;}
+  .vbadge{font-size:11px; padding:3px 9px; border-radius:20px; font-weight:700; display:inline-flex; align-items:center; line-height:1.2;}
   .vbadge.ok{background:#DCFCE7; color:#16A34A;}
   .vbadge.no{background:#F3F4F6; color:#6B7280;}
-  .mm-badgerow .note{font-size:11px; color:var(--sub);}
-  .mm-body{padding:4px 18px 14px; display:flex; flex-direction:column; gap:11px;}
-  .mf label{display:block; font-size:12.5px; margin-bottom:5px; font-weight:600;}
+  .mm-badgerow .note{font-size:11px; color:var(--sub); display:inline-flex; align-items:center;}
+  .mm-body{padding:4px 18px 16px; display:flex; flex-direction:column; gap:12px;}
+  .mf label{display:block; font-size:12.5px; margin-bottom:6px; font-weight:600;}
   .mf label .req{color:var(--destructive);}
-  .bankrow-snap{display:flex; gap:8px;}
-  .mf .ctl{flex:1; height:38px; border:1px solid var(--input); border-radius:var(--radius-md); padding:0 11px; display:flex; align-items:center; background:#fff; font-size:13px;}
+  .mf .ctl{width:100%; height:38px; border:1px solid var(--input); border-radius:var(--radius-md); padding:0 11px; display:flex; align-items:center; background:#fff; font-size:13px;}
   .mf .ctl.ph{color:#9CA3AF;}
   .mf .ctl.errb{border-color:var(--destructive); outline:1px solid var(--destructive); outline-offset:-1px;}
-  .legacybox-snap{flex:1; display:flex; align-items:center; background:#F3F4F6; color:var(--sub); border:1px solid var(--border); border-radius:6px; padding:0 11px; font-size:11.5px;}
-  .legacybox-snap b{color:var(--text); margin-left:3px;}
+  .legacyhint-snap{margin-top:7px; font-size:11px; color:#92400E; line-height:1.5; padding:8px 10px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px;}
   .mf .errtx{color:var(--destructive); font-size:11.5px; margin-top:4px;}
-  .mm .vbtn{width:100%; height:38px; border:1px solid var(--input); border-radius:var(--radius-md); background:#fff; display:flex; align-items:center; justify-content:center; font-weight:600;}
-  .mm .vbtn.dis{opacity:.4; background:#F3F4F6; color:#B0B4BB;}
+  .mm .vbtn{width:100%; height:38px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-weight:600;}
+  .mm .vbtn.on{border:1px solid var(--input); background:#fff; color:var(--text);}
+  .mm .vbtn.dis{background:#F3F4F6; color:#B0B4BB;}
   .mm .rbox{border-radius:var(--radius-md); padding:9px 11px; font-size:11.5px; line-height:1.5;}
   .mm .rbox.ok{background:#F0FDF4; color:#166534; border:1px solid #BBF7D0;}
   .mm .rbox.fail{background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;}
   .mm .rbox.info{background:#EEF2FF; color:#3730A3; border:1px solid #C7D2FE;}
   .mm-foot{padding:10px 18px 16px; display:flex; gap:8px;}
-  .mm-foot .b{flex:1; height:38px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-weight:600; border:1px solid var(--input); background:#fff;}
-  .mm-foot .b.p{background:var(--primary); color:#fff; border-color:var(--primary);}
-  .mm-foot .b.p.dis{background:#C7D2FE; border-color:#C7D2FE;}
+  .mm-foot .b{flex:1; height:38px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-weight:600;}
+  .mm-foot .b.on{border:1px solid var(--input); background:#fff; color:var(--text);}
+  .mm-foot .b.p{background:var(--primary); color:#fff;}
+  .mm-foot .b.dis{background:#F3F4F6; color:#B0B4BB;}
   .row16snap{width:420px; background:#fff; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; font-size:13px;}
   .row16snap .r{display:flex; border-bottom:1px solid var(--border);}
   .row16snap .r:last-child{border-bottom:none;}
@@ -90,32 +92,30 @@
   .play p{font-size:12.5px; color:var(--sub); margin:0 0 12px; line-height:1.7;}
   .btn{border:1px solid var(--input); background:#fff; color:var(--text); border-radius:var(--radius-md); padding:0 16px; height:38px; font-size:13px; font-weight:500; cursor:pointer;}
   .btn.primary{background:var(--primary); color:var(--primary-fg); border-color:var(--primary); font-weight:600;}
-  .btn:disabled{opacity:.4; cursor:not-allowed;}
+  .btn:disabled{background:#F3F4F6 !important; color:#B0B4BB !important; border-color:#F3F4F6 !important; cursor:not-allowed !important;}
   .scn{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
   .scn button{border:1px solid var(--border); background:#fff; border-radius:20px; padding:6px 12px; font-size:12px; cursor:pointer;}
   .scn button.active{background:#111827; color:#fff; border-color:#111827;}
   .overlay{position:fixed; inset:0; background:rgba(17,24,39,.5); display:none; align-items:center; justify-content:center; z-index:80;}
   .overlay.show{display:flex;}
   .modal{width:460px; background:#fff; border-radius:var(--radius-lg); box-shadow:0 20px 50px rgba(0,0,0,.25); overflow:hidden;}
-  .mhead{padding:18px 22px 12px; display:flex; justify-content:space-between; align-items:center;}
+  .mhead{padding:20px 24px 12px; display:flex; justify-content:space-between; align-items:center;}
   .mhead h3{margin:0; font-size:16px; font-weight:700;}
   .mhead .x{cursor:pointer; color:var(--sub); font-size:18px; line-height:1;}
-  .badgerow{padding:0 22px 12px; display:flex; align-items:center; gap:8px;}
-  .badgerow .note{font-size:11.5px; color:var(--sub);}
-  .mbody{padding:6px 22px 20px; display:flex; flex-direction:column; gap:14px;}
-  .fld label{display:block; font-size:13px; margin-bottom:7px; font-weight:600;}
+  .badgerow{padding:0 24px 14px; display:flex; align-items:center; gap:8px;}
+  .badgerow .note{font-size:11.5px; color:var(--sub); display:inline-flex; align-items:center;}
+  .mbody{padding:4px 24px 22px; display:flex; flex-direction:column; gap:18px;}
+  .fld label{display:block; font-size:13px; margin-bottom:8px; font-weight:600;}
   .fld label .req{color:var(--destructive);}
-  .bankrow{display:flex; gap:8px;}
-  .bankrow select{flex:1; height:42px; border:1px solid var(--input); border-radius:var(--radius-md); font-size:13.5px; background:#fff; padding:0 12px;}
-  .legacybox{flex:1; display:flex; align-items:center; background:#F3F4F6; color:var(--sub); border:1px solid var(--border); border-radius:var(--radius-md); padding:0 12px; font-size:12.5px;}
-  .legacybox b{color:var(--text); margin-left:4px;}
-  input.acct{width:100%; height:42px; border:1px solid var(--input); border-radius:var(--radius-md); font-size:13.5px; padding:0 12px;}
+  .fld select,.fld input{width:100%; height:42px; border:1px solid var(--input); border-radius:var(--radius-md); font-size:13.5px; background:#fff; padding:0 12px;}
+  .legacyhint{margin-top:8px; font-size:12px; color:#92400E; line-height:1.55; padding:9px 11px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; display:none;}
+  .legacyhint.show{display:block;}
   .rbox2{border-radius:var(--radius-md); padding:11px 13px; font-size:12.5px; display:none; line-height:1.55;}
   .rbox2.show{display:block;}
   .rbox2.ok{background:#F0FDF4; color:#166534; border:1px solid #BBF7D0;}
   .rbox2.fail{background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;}
   .rbox2.info{background:#EEF2FF; color:#3730A3; border:1px solid #C7D2FE;}
-  .mfoot{padding:16px 22px; display:flex; gap:8px;}
+  .mfoot{padding:16px 24px 22px; display:flex; gap:8px;}
   .mfoot .btn{flex:1; height:44px;}
   .confirmbox{width:380px;}
   .confirmbox .mbody{padding:8px 22px 20px;}
@@ -124,7 +124,10 @@
 </style>
 </head>
 <body>
-<div class="devnote"><span>REF-2932 · 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그 v5 (검증 배지 팝업 내부 노출 · 레거시 직접입력 우측 참고박스·일방향 전환 · 계좌수정 버튼 항상 활성)</span><b>v.26.07.200</b></div>
+<div class="devnote">
+  <span>REF-2932 · 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그 v6 (배지 정렬 수정, 계좌번호 실시간 삭제 시 즉시 비활성)</span>
+  <b>v.26.07.200</b>
+</div>
 
 <div class="wrap">
   <h1>환급계좌 키인 유효성 검증 — 상태별 전체 케이스</h1>
@@ -132,17 +135,17 @@
     세부기획서 §5-2(검증 규칙)·§5-3(상태별 케이스)·§5-5(기존 입력분 처리)에 정의된 모든 상태를 케이스별로 정리했다.
     각 케이스는 <b>발생 조건 → 시스템 동작 → 노출 문구 → 해당 상태의 UI</b> 순으로 구성된다. 마지막 절에서 실제로 조작해볼 수 있다.<br>
     원칙: <b>⑯ 국세환급금 계좌신고 행은 직접 수정 불가(읽기 전용)이며 값만 표기</b>된다. 예금주 확인은 하지 않으며 <b>계좌 실재 여부만</b> 확인한다.
-    검증 상태(검증완료/미검증)는 <b>팝업 상단 배지</b>로 노출되며, 한 번 검증완료되면 이후 재검증 없이 계속 유지된다.
+    검증 상태(검증완료/미검증)는 <b>팝업 상단 배지</b>로 노출되며, 은행·계좌번호가 바뀌면(입력이든 삭제든) <b>실시간으로</b> 체크·저장 버튼 활성 여부가 재평가된다.
   </div>
 
   <div class="toc">
     <b>목차</b>
-    <a href="#pos">버튼 위치</a>
+    <a href="#pos">기본 화면 상태·버튼 위치</a>
     <a href="#c0">CASE 0. 기본 상태 — 레거시(직접입력) 건</a>
-    <a href="#c1">CASE 1. 필수값 미입력</a>
+    <a href="#c1">CASE 1. 필수값 미입력 / 실시간 비활성</a>
     <a href="#c2">CASE 2. 계좌 확인 불가</a>
     <a href="#c3">CASE 3. 성공 → 저장</a>
-    <a href="#c4">CASE 4. 저장 후 ⑯행 반영</a>
+    <a href="#c4">CASE 4. 저장 후 ⑯행 반영 · 재오픈 시 배지 유지</a>
     <a href="#c5">CASE 5. 미저장 변경사항 안내</a>
     <a href="#play">인터랙티브 확인</a>
   </div>
@@ -158,9 +161,9 @@
   </div>
 
   <div class="position-note" id="pos">
-    <b>버튼 위치</b> — [계좌 수정]은 작성 화면 하단 버튼 영역, <b>[부속서류]와 [작성 결과] 사이</b>에 고정 위치하며, 나머지 하단 버튼들과 <b>동일한 스타일(항상 활성)</b>로 표시된다. 별도 토글·비활성 조건 없이 클릭 시 바로 모달이 열린다.
+    <b>기본 화면 상태</b> — 작성 화면 진입 시 상단은 <b>[작성완료]만 활성</b>(재계산실행·초기화·출력/현황은 비활성), 하단은 <b>[부속서류]·[계좌 수정]만 활성</b>(작성결과·도장다운로드·전체화면은 비활성)이다. [계좌 수정]은 [부속서류]와 [작성 결과] 사이에 고정 위치한다.
     <div class="btnrow-demo">
-      <span>부속서류</span><span class="highlight">계좌 수정</span><span>작성 결과</span><span>도장 다운로드</span><span>전체 화면</span>
+      <span class="on">부속서류</span><span class="on">계좌 수정</span><span class="off">작성 결과</span><span class="off">도장 다운로드</span><span class="off">전체 화면</span>
     </div>
   </div>
 
@@ -170,17 +173,17 @@
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>기능 배포 시점에 이미 자유 텍스트로 계좌가 입력돼 있던 딜. 은행 코드로 인식되지 않는 값(예: "신한3")</td></tr>
+          <tr><th>발생 조건</th><td>기능 배포 시점에 이미 자유 텍스트로 계좌가 입력돼 있던 딜 (예: "신한은행 삼성역점")</td></tr>
           <tr><th>⑯행 표기</th><td>기존 값이 그대로 표기된다(별도 표시 없음)</td></tr>
-          <tr><th>모달 진입 시</th><td>배지는 <b>[미검증]</b>. 은행 선택 자리에 <b>"직접입력"</b>이 표시되고, 그 우측에 원본 은행명을 보여주는 <b>읽기전용 참고박스</b>가 뜬다. 계좌번호는 원본 숫자가 프리필되어 있다</td></tr>
-          <tr><th>전환</th><td>같은 자리에서 <b>실제 은행을 선택</b>하면 참고박스가 사라지고 일반 은행 선택 UI로 바뀐다. <b>한 번 전환되면 "직접입력" 상태로 다시 돌아갈 수 없다</b></td></tr>
-          <tr><th>검증완료 후</th><td>유효성 체크 통과 + 저장하면 <b>[검증완료]</b>로 영구 전환. 이후 다시 열어도 재검증 없이 저장된 은행·계좌번호가 그대로 나오고 배지도 계속 [검증완료]</td></tr>
+          <tr><th>모달 진입 시</th><td>배지는 <b>[미검증]</b>. 은행 선택 자리에 예전 자유텍스트 값이 그대로 옵션으로 표시되고, 바로 아래 안내: <span class="msg">"과거 은행명을 직접입력하셨어요. 이 상태로는 유효성 체크가 불가하니 은행을 다시 선택해주세요."</span> [계좌 유효성 체크]는 비활성</td></tr>
+          <tr><th>전환</th><td>같은 선택 자리에서 <b>실제 은행을 고르면</b> 안내문구가 사라지고 체크가 활성화된다. <b>한 번 전환되면 되돌릴 수 없다</b></td></tr>
+          <tr><th>검증완료 후</th><td>유효성 체크 통과 + 저장하면 <b>[검증완료]</b>로 영구 전환. 이후 다시 열어도 재검증 없이 저장된 값이 그대로 나오고 배지도 계속 [검증완료]</td></tr>
         </table>
       </div>
       <div class="case-ui">
         <div style="display:flex; flex-direction:column; gap:14px; align-items:center;">
           <div class="row16snap">
-            <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val">신한3</div></div>
+            <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val">신한은행 삼성역점</div></div>
             <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono">110491344284</div></div>
           </div>
           <div class="mm" style="width:360px;">
@@ -189,10 +192,8 @@
             <div class="mm-body">
               <div class="mf">
                 <label>은행 선택 <span class="req">*</span></label>
-                <div class="bankrow-snap">
-                  <div class="ctl">직접입력</div>
-                  <div class="legacybox-snap">원본 입력값: <b>신한3</b></div>
-                </div>
+                <div class="ctl">신한은행 삼성역점 (직접입력)</div>
+                <div class="legacyhint-snap">과거 은행명을 직접입력하셨어요. 이 상태로는 유효성 체크가 불가하니 은행을 다시 선택해주세요.</div>
               </div>
               <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">110491344284</div></div>
               <div class="vbtn dis">계좌 유효성 체크</div>
@@ -205,13 +206,13 @@
 
   <!-- CASE 1 -->
   <div class="case" id="c1">
-    <div class="case-head"><div class="case-no n-red">1</div><h2>필수값 미입력</h2><span class="case-tag t-err">은행 미선택 또는 계좌번호 미입력</span></div>
+    <div class="case-head"><div class="case-no n-red">1</div><h2>필수값 미입력 · 실시간 재평가</h2><span class="case-tag t-err">은행 미선택 또는 계좌번호 미입력(삭제 포함)</span></div>
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>은행을 선택하지 않았거나 계좌번호가 비어 있음 (신규 입력 케이스)</td></tr>
-          <tr><th>시스템 동작</th><td><b>[계좌 유효성 체크] 버튼이 비활성 상태</b> — 은행 선택 + 계좌번호 입력이 모두 채워져야 활성화됨. 배지는 [미검증]</td></tr>
-          <tr><th>후속</th><td>두 필드 모두 입력하면 체크 버튼 자동 활성화</td></tr>
+          <tr><th>발생 조건</th><td>은행을 선택하지 않았거나 계좌번호가 비어 있음. <b>이미 입력했다가 나중에 지운 경우도 동일하게 적용</b>된다 — 값이 바뀔 때마다 실시간으로 재평가</td></tr>
+          <tr><th>시스템 동작</th><td>[계좌 유효성 체크]·[저장] 버튼이 즉시 회색 비활성으로 바뀐다. 은행 선택 + 계좌번호 입력이 모두 채워져야 다시 활성화됨</td></tr>
+          <tr><th>후속</th><td>두 필드 모두 입력하면 체크 버튼 자동 재활성화</td></tr>
         </table>
       </div>
       <div class="case-ui">
@@ -219,11 +220,11 @@
           <div class="mm-head"><h3>환급계좌 수정</h3><span class="x">✕</span></div>
           <div class="mm-badgerow"><span class="vbadge no">미검증</span></div>
           <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl ph">은행을 선택해주세요</div></div>
+            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">우리은행</div></div>
             <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl ph">숫자만 입력</div></div>
             <div class="vbtn dis">계좌 유효성 체크</div>
           </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p dis">저장</div></div>
+          <div class="mm-foot"><div class="b on">취소</div><div class="b dis">저장</div></div>
         </div>
       </div>
     </div>
@@ -247,10 +248,10 @@
           <div class="mm-body">
             <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">KB국민은행</div></div>
             <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">1234567890123</div></div>
-            <div class="vbtn">계좌 유효성 체크</div>
+            <div class="vbtn on">계좌 유효성 체크</div>
             <div class="rbox fail" style="display:block;">계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.</div>
           </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p dis">저장</div></div>
+          <div class="mm-foot"><div class="b on">취소</div><div class="b dis">저장</div></div>
         </div>
       </div>
     </div>
@@ -274,10 +275,10 @@
           <div class="mm-body">
             <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">케이뱅크</div></div>
             <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">10012345678901</div></div>
-            <div class="vbtn">계좌 유효성 체크</div>
+            <div class="vbtn on">계좌 유효성 체크</div>
             <div class="rbox ok" style="display:block;">계좌 확인이 완료되었습니다.</div>
           </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p">저장</div></div>
+          <div class="mm-foot"><div class="b on">취소</div><div class="b p">저장</div></div>
         </div>
       </div>
     </div>
@@ -289,7 +290,7 @@
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>⑯행 동작</th><td>저장된 은행명·계좌번호 값이 ⑯행에 <b>그대로 반영</b>된다. 별도 상태 표기(배지 등)는 ⑯행에는 없음</td></tr>
+          <tr><th>⑯행 동작</th><td>저장된 은행명·계좌번호 값이 ⑯행에 <b>그대로 반영</b>된다. ⑯행에는 배지 등 별도 상태 표기 없음</td></tr>
           <tr><th>재오픈 시</th><td>[계좌 수정]을 다시 눌러 모달을 열면 <b>배지가 [검증완료]로 바로 표시</b>되고, 저장된 은행·계좌번호가 프리필된 상태로 열린다. 재검증은 필요 없다</td></tr>
           <tr><th>변경</th><td>⑯행 셀은 직접 수정 불가 — 재변경도 [계좌 수정] 버튼을 통해서만 가능</td></tr>
         </table>
@@ -329,7 +330,7 @@
         <div class="mm confirmmm">
           <div class="mm-head"><h3>알림</h3><span class="x">✕</span></div>
           <div class="mm-body"><p>저장되지 않은 변경사항이 있습니다. 계좌 수정을 진행하면 저장되지 않은 내용은 사라질 수 있습니다. 계속하시겠습니까?</p></div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p">계속</div></div>
+          <div class="mm-foot"><div class="b on">취소</div><div class="b p">계속</div></div>
         </div>
       </div>
     </div>
@@ -338,7 +339,7 @@
   <!-- 인터랙티브 -->
   <div class="play" id="play">
     <h2>인터랙티브 확인</h2>
-    <p>"기본(레거시)" 시나리오에서 직접입력 참고박스 → 실제 은행 선택 → 유효성 체크 → 저장까지 진행해보고, 다시 [계좌 수정]을 눌러 배지가 [검증완료]로 유지되는지 확인해보세요.</p>
+    <p>"기본(레거시)" 시나리오에서 직접입력 안내문구 → 실제 은행 선택 → 계좌번호 지워보기(실시간 비활성 확인) → 다시 입력 → 유효성 체크 → 저장, 그다음 다시 [계좌 수정]을 눌러 배지가 유지되는지 확인해보세요.</p>
     <div class="scn" id="scnGroup">
       <button data-s="none" class="active">CASE 0 기본(레거시)</button>
       <button data-s="empty">CASE 1 미입력</button>
@@ -349,11 +350,11 @@
     <button class="btn" id="openBtn">계좌 수정</button>
     <div class="liverow">
       <div class="row16snap" style="width:100%; max-width:520px;">
-        <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val" id="liveBank">신한3</div></div>
+        <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val" id="liveBank">신한은행 삼성역점</div></div>
         <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono" id="liveAcct">110491344284</div></div>
       </div>
       <div class="btnrow-demo" style="margin-top:10px;">
-        <span>부속서류</span><span class="highlight">계좌 수정</span><span>작성 결과</span><span>도장 다운로드</span><span>전체 화면</span>
+        <span class="on">부속서류</span><span class="on">계좌 수정</span><span class="off">작성 결과</span><span class="off">도장 다운로드</span><span class="off">전체 화면</span>
       </div>
     </div>
   </div>
@@ -380,21 +381,20 @@
     <div class="mbody">
       <div class="fld">
         <label>은행 선택 <span class="req">*</span></label>
-        <div class="bankrow">
-          <select id="bank" onchange="onFieldChange()">
-            <option value="088" data-name="신한은행">신한은행</option>
-            <option value="004" data-name="KB국민은행">KB국민은행</option>
-            <option value="020" data-name="우리은행">우리은행</option>
-            <option value="003" data-name="IBK기업은행">IBK기업은행</option>
-            <option value="089" data-name="케이뱅크">케이뱅크</option>
-            <option value="092" data-name="토스뱅크">토스뱅크</option>
-          </select>
-          <div class="legacybox" id="legacyBox" style="display:none;">원본 입력값: <b id="legacyText">신한3</b></div>
-        </div>
+        <select id="bank" onchange="onFieldChange2()">
+          <option value="" id="legacyOpt">신한은행 삼성역점 (직접입력)</option>
+          <option value="088" data-name="신한은행">신한은행</option>
+          <option value="004" data-name="KB국민은행">KB국민은행</option>
+          <option value="020" data-name="우리은행">우리은행</option>
+          <option value="003" data-name="IBK기업은행">IBK기업은행</option>
+          <option value="089" data-name="케이뱅크">케이뱅크</option>
+          <option value="092" data-name="토스뱅크">토스뱅크</option>
+        </select>
+        <div class="legacyhint" id="legacyHint">과거 은행명을 직접입력하셨어요. 이 상태로는 유효성 체크가 불가하니 은행을 다시 선택해주세요.</div>
       </div>
       <div class="fld">
         <label>계좌번호 <span class="req">*</span></label>
-        <input class="acct mono" id="acctNo" type="text" placeholder="숫자만 입력" oninput="this.value=this.value.replace(/[^0-9]/g,''); onFieldChange()">
+        <input class="mono" id="acctNo" type="text" placeholder="숫자만 입력" oninput="this.value=this.value.replace(/[^0-9]/g,''); onFieldChange()">
       </div>
       <button class="btn" style="width:100%; height:44px;" id="verifyBtn" disabled onclick="doVerify()">계좌 유효성 체크</button>
       <div class="rbox2 ok" id="resOk">계좌 확인이 완료되었습니다.</div>
@@ -414,6 +414,8 @@ let legacyVerified = false;
 let legacyChosenBank = null;
 let legacyChosenAcct = '';
 let isLegacyActive = false;
+const LEGACY_BANK_TEXT = '신한은행 삼성역점';
+const LEGACY_ACCT_TEXT = '110491344284';
 
 document.querySelectorAll('#scnGroup button').forEach(b=>{
   b.onclick=()=>{document.querySelectorAll('#scnGroup button').forEach(x=>x.classList.remove('active'));b.classList.add('active');scenario=b.dataset.s;};
@@ -432,15 +434,16 @@ function openModal(){
     if(!legacyVerified){
       isLegacyActive = true;
       setBadge(false);
-      document.getElementById('legacyBox').style.display='flex';
-      document.getElementById('bank').style.display='none';
-      showLegacyTrigger();
-      document.getElementById('acctNo').value = '110491344284';
+      if(!document.getElementById('bank').querySelector('#legacyOpt')){
+        document.getElementById('bank').insertAdjacentHTML('afterbegin', '<option value="" id="legacyOpt">'+LEGACY_BANK_TEXT+' (직접입력)</option>');
+      }
+      document.getElementById('bank').value = '';
+      document.getElementById('legacyHint').classList.add('show');
+      document.getElementById('acctNo').value = LEGACY_ACCT_TEXT;
       onFieldChange();
     } else {
       isLegacyActive = false;
       setBadge(true);
-      document.getElementById('bank').style.display='block';
       document.getElementById('bank').value = legacyChosenBank;
       document.getElementById('acctNo').value = legacyChosenAcct;
       document.getElementById('resInfo').classList.add('show');
@@ -454,31 +457,14 @@ function openModal(){
   if(scenario==='success'){ document.getElementById('bank').value='089'; document.getElementById('acctNo').value='10012345678901'; onFieldChange(); }
 }
 
-function showLegacyTrigger(){
-  let trigger = document.getElementById('legacyTrigger');
-  if(!trigger){
-    trigger = document.createElement('select');
-    trigger.id = 'legacyTrigger';
-    trigger.style.height = '42px';
-    trigger.style.border = '1px solid #E5E7EB';
-    trigger.style.borderRadius = '6px';
-    trigger.style.fontSize = '13.5px';
-    trigger.style.padding = '0 12px';
-    trigger.style.flex = '1';
-    trigger.innerHTML = '<option value="">직접입력</option><option value="088" data-name="신한은행">신한은행</option><option value="004" data-name="KB국민은행">KB국민은행</option><option value="020" data-name="우리은행">우리은행</option><option value="003" data-name="IBK기업은행">IBK기업은행</option><option value="089" data-name="케이뱅크">케이뱅크</option><option value="092" data-name="토스뱅크">토스뱅크</option>';
-    trigger.onchange = onLegacyBankPicked;
-    document.getElementById('legacyBox').insertAdjacentElement('beforebegin', trigger);
+function onFieldChange2(){
+  const v = document.getElementById('bank').value;
+  if(isLegacyActive && v!==''){
+    isLegacyActive = false;
+    document.getElementById('legacyHint').classList.remove('show');
+    const opt = document.getElementById('legacyOpt');
+    if(opt) opt.remove();
   }
-  trigger.style.display='block';
-}
-function onLegacyBankPicked(e){
-  const v = e.target.value;
-  if(!v) return;
-  isLegacyActive = false;
-  document.getElementById('legacyBox').style.display='none';
-  document.getElementById('legacyTrigger').remove();
-  document.getElementById('bank').style.display='block';
-  document.getElementById('bank').value = v;
   onFieldChange();
 }
 
@@ -486,18 +472,17 @@ function setBadge(ok){
   const b = document.getElementById('vbadge');
   b.textContent = ok ? '검증완료' : '미검증';
   b.className = 'vbadge ' + (ok ? 'ok' : 'no');
-  document.getElementById('vnote').style.display = ok ? 'none' : 'inline';
+  document.getElementById('vnote').style.display = ok ? 'none' : 'inline-flex';
 }
 
 function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
 
 function resetModal(){
-  const trigger = document.getElementById('legacyTrigger');
-  if(trigger) trigger.remove();
-  document.getElementById('legacyBox').style.display='none';
-  document.getElementById('bank').style.display='block';
+  const opt = document.getElementById('legacyOpt');
+  if(opt) opt.remove();
   document.getElementById('bank').value='';
   document.getElementById('acctNo').value='';
+  document.getElementById('legacyHint').classList.remove('show');
   ['resOk','resFail','resInfo'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.getElementById('verifyBtn').disabled=true;
   document.getElementById('saveBtn').disabled=true;
@@ -505,10 +490,10 @@ function resetModal(){
 }
 
 function onFieldChange(){
-  const bankVisible = document.getElementById('bank').style.display!=='none';
-  const bank = bankVisible ? document.getElementById('bank').value : '';
+  const bank = document.getElementById('bank').value;
   const acct = document.getElementById('acctNo').value;
-  document.getElementById('verifyBtn').disabled = !(bank && acct) || isLegacyActive;
+  const canVerify = !!(bank && acct) && !isLegacyActive;
+  document.getElementById('verifyBtn').disabled = !canVerify;
   ['resOk','resFail'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.getElementById('saveBtn').disabled = true;
 }
