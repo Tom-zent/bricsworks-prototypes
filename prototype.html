@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>REF-2932 환급계좌 키인 유효성 검증 — FE 참조 프로토타입 v5</title>
+<title>REF-2932 환급계좌 키인 유효성 검증 — FE 참조 프로토타입 v6</title>
 <style>
   :root{
     --primary:#4B3FD3; --primary-fg:#F9FAFB; --destructive:#EF4444;
@@ -31,8 +31,7 @@
   .btn.primary{background:var(--primary); color:var(--primary-fg); border-color:var(--primary); font-weight:600;}
   .btn.primary:hover{background:#4338CA;}
   .btn.sm{height:36px; padding:0 14px; font-size:13px;}
-  .btn.accent{background:#EEF2FF; border-color:#C7D2FE; color:#3730A3; font-weight:600;}
-  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn:disabled{opacity:.4; cursor:not-allowed; background:#F3F4F6; color:#B0B4BB; border-color:#E5E7EB;}
   .stepper{display:flex; margin-bottom:18px; font-size:14px; height:52px;}
   .step{flex:1; display:flex; align-items:center; justify-content:center; background:#fff; color:#6B7280; position:relative; border-top:1px solid var(--border); border-bottom:1px solid var(--border);}
   .step:first-child{border-left:1px solid var(--border); border-radius:8px 0 0 8px;}
@@ -74,13 +73,17 @@
   .sheetfoot span.on{color:#16A34A; font-weight:700; border-bottom:2px solid #16A34A;}
   .readybar{background:#1F7A4D; color:#fff; font-size:12px; padding:6px 14px; display:flex; justify-content:space-between; border-radius:0 0 8px 8px;}
   .bottombar{display:flex; justify-content:flex-end; gap:8px; margin-top:14px;}
+  .editmode-box{margin-top:14px; padding:12px 16px; border:1px dashed #C7D2FE; border-radius:8px; background:#EEF2FF; font-size:12px; color:#3730A3; display:none;}
+  .editmode-box.show{display:block;}
   .overlay{position:fixed; inset:0; background:rgba(17,24,39,.5); display:none; align-items:center; justify-content:center; z-index:60;}
   .overlay.show{display:flex;}
   .modal{width:420px; background:#fff; border-radius:var(--radius-lg); box-shadow:0 20px 50px rgba(0,0,0,.25); overflow:hidden;}
   .mhead{padding:18px 22px 14px; display:flex; justify-content:space-between; align-items:center;}
   .mhead h3{margin:0; font-size:16px; font-weight:700;}
   .mhead .x{cursor:pointer; color:var(--sub); font-size:18px; line-height:1;}
-  .mbody{padding:6px 22px 20px; display:flex; flex-direction:column; gap:16px;}
+  .mbody{padding:6px 22px 20px; display:flex; flex-direction:column; gap:14px;}
+  .legacy-ref{background:#F9FAFB; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; font-size:12px; color:var(--sub); line-height:1.6;}
+  .legacy-ref b{color:var(--text); font-weight:600;}
   .fld label{display:block; font-size:13px; margin-bottom:7px; font-weight:600;}
   .fld label .req{color:var(--destructive);}
   .fld select,.fld input{width:100%; padding:0 12px; height:42px; border:1px solid var(--input); border-radius:var(--radius-md); font-size:13.5px; background:#fff;}
@@ -91,7 +94,6 @@
   .rbox.show{display:block;}
   .rbox.ok{background:#F0FDF4; color:#166534; border:1px solid #BBF7D0;}
   .rbox.fail{background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;}
-  .rbox.warn{background:#FFFBEB; color:#92400E; border:1px solid #FDE68A;}
   .mfoot{padding:16px 22px; display:flex; gap:8px;}
   .mfoot .btn{flex:1; height:44px;}
   .confirmbox{width:380px;}
@@ -106,7 +108,7 @@
 </style>
 </head>
 <body>
-<div class="devnote"><span>REF-2932 · 환급계좌 키인 유효성 검증 — FE 구현 참조 프로토타입 v5 (7/15 기획리뷰 확정 반영: 계좌 유효성 체크 · 모달 2단 · 자릿수 제한 없음 · [계좌 수정] 하단 · 미저장 팝업)</span><b>v.26.07.200</b></div>
+<div class="devnote"><span>REF-2932 · 환급계좌 키인 유효성 검증 — FE 구현 참조 프로토타입 v6 (버튼 위치: 부속서류-계좌수정-작성결과 / 수정하기 편집모드 연동 / 은행목록에 직접입력 옵션 없음, 기존값은 모달 참고표시만 / API 장애 케이스 제외)</span><b>v.26.07.200</b></div>
 
 <div class="wrap">
   <div class="crumb">Home &nbsp;&gt;&nbsp; 종소세 경정청구 &nbsp;&gt;&nbsp; 환급 &nbsp;&gt;&nbsp; <b>상세</b></div>
@@ -140,12 +142,12 @@
   </div>
 
   <div class="statusbar">
-    <span class="lbl">작성</span> <span class="pill">완료</span>
+    <span class="lbl">작성</span> <span class="pill" id="statusPill">완료</span>
     <span class="calcdate">데이터 계산일시 <b>2026.07.15 10:11</b></span>
-    <button class="btn sm">재계산 실행</button>
-    <button class="btn sm">수정하기</button>
-    <button class="btn sm">초기화</button>
-    <button class="btn sm primary">저장하기</button>
+    <button class="btn sm" id="recalcBtn">재계산 실행</button>
+    <button class="btn sm" id="editBtn" onclick="toggleEditMode()">수정하기</button>
+    <button class="btn sm" id="resetBtn">초기화</button>
+    <button class="btn sm primary" id="doneBtn">작성완료</button>
   </div>
 
   <div class="sheetcard">
@@ -164,7 +166,7 @@
           <tr>
             <td class="rowlabel">⑯ 국세환급금 계좌신고</td>
             <td class="subhdr">거래은행</td>
-            <td id="bankCell">신한은행</td>
+            <td id="bankCell">신한3(직접입력)</td>
             <td><span class="subhdr" style="width:auto; padding-right:14px; display:inline-block;">계좌번호</span><span class="mono" id="acctCell">110491344284</span></td>
           </tr>
           <tr><td class="rowlabel">⑰ 환 급 받 을 세 액</td><td class="num mono" colspan="2"></td><td class="num mono">2,168,295</td></tr>
@@ -178,37 +180,39 @@
   </div>
 
   <div class="bottombar">
-    <button class="btn accent" id="openTrigger">계좌 수정</button>
-    <button class="btn">부속서류</button>
-    <button class="btn">작성 결과</button>
-    <button class="btn">도장 다운로드</button>
-    <button class="btn">전체 화면</button>
+    <button class="btn" id="attachBtn">부속서류</button>
+    <button class="btn accent" id="openTrigger" style="background:#EEF2FF; border-color:#C7D2FE; color:#3730A3; font-weight:600;">계좌 수정</button>
+    <button class="btn" id="resultBtn">작성 결과</button>
+    <button class="btn" id="stampBtn">도장 다운로드</button>
+    <button class="btn" id="fullBtn">전체 화면</button>
+  </div>
+
+  <div class="editmode-box" id="editmodeBox">
+    <b>[수정하기] 편집 모드</b> — 시트 데이터 수정 중입니다. 이 상태에서는 상단 <b>[작성완료]</b>만, 하단은 <b>[부속서류]</b>만 활성 상태를 유지합니다.
+    <b>[계좌 수정]</b>은 예외적으로 계속 활성 상태입니다 — 계좌 수정은 시트 편집과 별개의 독립 동작이기 때문입니다.
   </div>
 
   <div class="panel">
-    <h4>테스트 시나리오 — 세부기획서 §5-3 케이스 0~6 (프로토타입 확인용, 실제 화면에는 없음)</h4>
+    <h4>테스트 시나리오 — 세부기획서 §5-3 케이스 0~5 (프로토타입 확인용, 실제 화면에는 없음)</h4>
     <div class="scn" id="scnGroup">
       <button data-s="none" class="active">기본 진입</button>
       <button data-s="empty">필수값 미입력</button>
       <button data-s="notfound">계좌 확인 불가</button>
-      <button data-s="apierror">체크 API 장애</button>
       <button data-s="success">성공 → 저장</button>
       <button data-s="unsaved">미저장 변경사항</button>
     </div>
+    <button class="btn sm" onclick="toggleEditMode()" style="margin-bottom:10px;">상단 [수정하기] 토글해보기</button>
     <div class="note">
-      ⑯행 셀은 직접 수정 불가(읽기 전용)이며 <b>값만 표기</b>됩니다. 모든 입력·변경은 하단 <b>[계좌 수정]</b> 버튼을 통해서만 이뤄집니다.
-      은행은 목록에서 선택(코드는 화면에 표시 안 함), 계좌번호는 자릿수 제한 없이 숫자만 입력합니다. 예금주 확인은 하지 않으며, <b>계좌 실재 여부만</b> 확인합니다.
+      ⑯행 셀은 직접 수정 불가(읽기 전용)이며 <b>값만 표기</b>됩니다. 모든 입력·변경은 <b>[부속서류]와 [작성 결과] 사이의 [계좌 수정]</b> 버튼을 통해서만 이뤄집니다.
+      은행 선택 목록에는 <b>"직접 입력" 항목이 없으며</b>, 기존에 자유 텍스트로 저장된 값이 있는 경우 모달 상단에 참고용으로만 표시됩니다(선택 불가) — 아래 "기본 진입" 시나리오로 확인해보세요.
     </div>
   </div>
 </div>
 
-<!-- 미저장 변경사항 안내 -->
 <div class="overlay" id="unsavedOverlay">
   <div class="modal confirmbox">
     <div class="mhead"><h3>알림</h3><span class="x" onclick="closeUnsaved(false)">✕</span></div>
-    <div class="mbody">
-      <p>저장되지 않은 변경사항이 있습니다. 계좌 수정을 진행하면 저장되지 않은 내용은 사라질 수 있습니다. 계속하시겠습니까?</p>
-    </div>
+    <div class="mbody"><p>저장되지 않은 변경사항이 있습니다. 계좌 수정을 진행하면 저장되지 않은 내용은 사라질 수 있습니다. 계속하시겠습니까?</p></div>
     <div class="mfoot">
       <button class="btn" onclick="closeUnsaved(false)">취소</button>
       <button class="btn primary" onclick="closeUnsaved(true)">계속</button>
@@ -216,11 +220,14 @@
   </div>
 </div>
 
-<!-- 계좌 수정 모달 -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="mhead"><h3>환급계좌 수정</h3><span class="x" onclick="closeModal()">✕</span></div>
     <div class="mbody">
+      <div class="legacy-ref" id="legacyRef" style="display:none;">
+        현재 저장값: <b>직접입력 — 신한3 / 110491344284</b><br>
+        위 값은 참고용 표시이며 선택·수정할 수 없습니다. 저장하려면 아래에서 은행을 새로 선택하고 계좌번호를 다시 입력해주세요.
+      </div>
       <div class="fld">
         <label>은행 선택 <span class="req">*</span></label>
         <select id="bank" onchange="onFieldChange()">
@@ -242,7 +249,6 @@
       <button class="btn" style="width:100%; height:44px;" id="verifyBtn" disabled onclick="doVerify()">계좌 유효성 체크</button>
       <div class="rbox ok" id="resOk">계좌 확인이 완료되었습니다.</div>
       <div class="rbox fail" id="resFail"><span id="failMsg">계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.</span></div>
-      <div class="rbox warn" id="resWarn">계좌 확인 서비스에 일시 장애가 있습니다. 확인 없이 저장됩니다. 장애 복구 후 재확인이 필요합니다.</div>
     </div>
     <div class="mfoot">
       <button class="btn" onclick="closeModal()">취소</button>
@@ -252,11 +258,21 @@
 </div>
 
 <script>
-let scenario='none', verified=false, pendingUnsaved=false;
+let scenario='none', verified=false, editMode=false;
 
 document.querySelectorAll('#scnGroup button').forEach(b=>{
   b.onclick=()=>{document.querySelectorAll('#scnGroup button').forEach(x=>x.classList.remove('active'));b.classList.add('active');scenario=b.dataset.s;};
 });
+
+function toggleEditMode(){
+  editMode = !editMode;
+  document.getElementById('editmodeBox').classList.toggle('show', editMode);
+  ['recalcBtn','resetBtn','attachBtn','resultBtn','stampBtn','fullBtn'].forEach(id=>{
+    document.getElementById(id).disabled = editMode;
+  });
+  document.getElementById('doneBtn').disabled = false;
+  document.getElementById('editBtn').textContent = editMode ? '수정 완료' : '수정하기';
+}
 
 document.getElementById('openTrigger').onclick = ()=>{
   if(scenario==='unsaved'){
@@ -269,29 +285,30 @@ function closeUnsaved(proceed){
   document.getElementById('unsavedOverlay').classList.remove('show');
   if(proceed) openModal();
 }
-function openModal(){document.getElementById('overlay').classList.add('show');reset();preset();}
+function openModal(){
+  document.getElementById('overlay').classList.add('show');
+  reset();
+  document.getElementById('legacyRef').style.display = (scenario==='none') ? 'block' : 'none';
+}
 function closeModal(){document.getElementById('overlay').classList.remove('show');}
 function reset(){
   document.getElementById('bank').value='';
   document.getElementById('acctNo').value='';
-  ['errBank','errAcct','resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  ['errBank','errAcct','resOk','resFail'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.getElementById('verifyBtn').disabled=true;
   document.getElementById('saveBtn').disabled=true; verified=false;
-}
-function preset(){
   if(scenario==='notfound'){document.getElementById('bank').value='004';document.getElementById('acctNo').value='1234567890123';onFieldChange();}
-  if(scenario==='apierror'){document.getElementById('bank').value='003';document.getElementById('acctNo').value='01012345678901';onFieldChange();}
   if(scenario==='success'){document.getElementById('bank').value='089';document.getElementById('acctNo').value='10012345678901';onFieldChange();}
 }
 function onFieldChange(){
   const bank=document.getElementById('bank').value, acct=document.getElementById('acctNo').value;
   document.getElementById('verifyBtn').disabled = !(bank && acct);
-  ['errBank','errAcct','resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  ['errBank','errAcct','resOk','resFail'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.getElementById('saveBtn').disabled=true;
 }
 function doVerify(){
   const bank=document.getElementById('bank').value, acct=document.getElementById('acctNo').value;
-  ['errBank','errAcct','resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  ['errBank','errAcct','resOk','resFail'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.getElementById('saveBtn').disabled=true;
   if(scenario==='empty'||!bank||!acct){
     if(!bank)document.getElementById('errBank').classList.add('show');
@@ -299,7 +316,6 @@ function doVerify(){
     return;
   }
   if(scenario==='notfound'){document.getElementById('resFail').classList.add('show');return;}
-  if(scenario==='apierror'){document.getElementById('resWarn').classList.add('show');verified='warn';document.getElementById('saveBtn').disabled=false;return;}
   document.getElementById('resOk').classList.add('show');verified=true;document.getElementById('saveBtn').disabled=false;
 }
 function doSave(){
