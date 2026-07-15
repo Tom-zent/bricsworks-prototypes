@@ -2,11 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>REF-2932 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그</title>
+<title>REF-2932 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그 v3</title>
 <style>
   :root{
-    --primary:#4B3FD3; --primary-fg:#F9FAFB;
-    --destructive:#EF4444;
+    --primary:#4B3FD3; --primary-fg:#F9FAFB; --destructive:#EF4444;
     --border:#E5E7EB; --input:#E5E7EB; --ring:#4B3FD3;
     --radius-lg:8px; --radius-md:6px; --radius-sm:4px;
     --text:#111827; --sub:#6B7280; --bg:#F8F9FA; --card:#fff;
@@ -18,22 +17,15 @@
   .devnote{background:#111827; color:#9CA3AF; font-size:12px; padding:8px 16px; display:flex; justify-content:space-between; position:sticky; top:0; z-index:70;}
   .devnote b{color:#fff;}
   .wrap{max-width:1240px; margin:0 auto; padding:24px;}
-
   h1{font-size:20px; margin:0 0 6px;}
   .sub{color:var(--sub); font-size:13px; margin-bottom:20px; line-height:1.7;}
-
-  /* 목차 */
   .toc{background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 18px; margin-bottom:26px; font-size:13px;}
   .toc b{display:block; margin-bottom:8px;}
   .toc a{color:var(--primary); text-decoration:none; margin-right:14px; line-height:2;}
   .toc a:hover{text-decoration:underline;}
-
-  /* 플로우 */
   .flow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px; margin-bottom:30px; font-size:13px;}
   .flow .fstep{background:#EEF2FF; color:#3730A3; border:1px solid #C7D2FE; border-radius:var(--radius-md); padding:8px 13px; font-weight:600;}
   .flow .arr{color:#9CA3AF;}
-
-  /* 케이스 카드 */
   .case{background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); margin-bottom:26px; overflow:hidden;}
   .case-head{display:flex; align-items:center; gap:10px; padding:14px 20px; border-bottom:1px solid var(--border); background:#FAFAFA;}
   .case-no{width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; flex-shrink:0;}
@@ -41,29 +33,25 @@
   .case-head h2{font-size:15px; margin:0; flex:1;}
   .case-tag{font-size:11px; padding:3px 9px; border-radius:4px; font-weight:700;}
   .t-err{background:#FEF2F2; color:#991B1B;} .t-warn{background:#FFFBEB; color:#92400E;} .t-ok{background:#F0FDF4; color:#166534;} .t-info{background:#EEF2FF; color:#3730A3;}
-  .case-body{display:flex; gap:0;}
+  .case-body{display:flex;}
   .case-spec{flex:1; padding:18px 20px; border-right:1px solid var(--border); min-width:0;}
   .case-spec table{width:100%; border-collapse:collapse; font-size:13px;}
   .case-spec th{width:96px; text-align:left; color:var(--sub); font-weight:600; padding:7px 10px 7px 0; vertical-align:top; font-size:12.5px;}
   .case-spec td{padding:7px 0; line-height:1.65;}
   .case-spec .msg{background:#F9FAFB; border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 11px; font-size:12.5px; display:inline-block;}
-  .case-ui{width:490px; flex-shrink:0; padding:18px 20px; background:#F3F4F6; display:flex; align-items:flex-start; justify-content:center;}
-
-  /* 미니 모달 (정적 스냅샷) */
-  .mm{width:400px; background:#fff; border-radius:var(--radius-lg); box-shadow:0 8px 24px rgba(0,0,0,.12); overflow:hidden; font-size:13px;}
+  .case-ui{width:430px; flex-shrink:0; padding:18px 20px; background:#F3F4F6; display:flex; align-items:flex-start; justify-content:center;}
+  .mm{width:380px; background:#fff; border-radius:var(--radius-lg); box-shadow:0 8px 24px rgba(0,0,0,.12); overflow:hidden; font-size:13px;}
   .mm-head{padding:14px 18px 10px; display:flex; justify-content:space-between; align-items:center;}
   .mm-head h3{margin:0; font-size:14.5px; font-weight:700;}
   .mm-head .x{color:var(--sub); font-size:15px;}
   .mm-body{padding:4px 18px 14px; display:flex; flex-direction:column; gap:12px;}
   .mf label{display:block; font-size:12.5px; margin-bottom:5px; font-weight:600;}
   .mf label .req{color:var(--destructive);}
-  .mf .ctl{width:100%; height:38px; border:1px solid var(--input); border-radius:var(--radius-md); padding:0 11px; display:flex; align-items:center; color:var(--text); background:#fff; font-size:13px;}
+  .mf .ctl{width:100%; height:38px; border:1px solid var(--input); border-radius:var(--radius-md); padding:0 11px; display:flex; align-items:center; background:#fff; font-size:13px;}
   .mf .ctl.ph{color:#9CA3AF;}
-  .mf .ctl.dis{background:#F3F4F6; color:#9CA3AF;}
   .mf .ctl.errb{border-color:var(--destructive); outline:1px solid var(--destructive); outline-offset:-1px;}
   .mf .errtx{color:var(--destructive); font-size:11.5px; margin-top:4px;}
-  .mf .hinttx{color:var(--sub); font-size:11px; margin-top:4px;}
-  .mm .vbtn{width:100%; height:40px; border:1px solid var(--input); border-radius:var(--radius-md); background:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; color:var(--text);}
+  .mm .vbtn{width:100%; height:40px; border:1px solid var(--input); border-radius:var(--radius-md); background:#fff; display:flex; align-items:center; justify-content:center; font-weight:600;}
   .mm .vbtn.dis{opacity:.45;}
   .mm .rbox{border-radius:var(--radius-md); padding:10px 12px; font-size:12px; line-height:1.55;}
   .mm .rbox.ok{background:#F0FDF4; color:#166534; border:1px solid #BBF7D0;}
@@ -73,24 +61,17 @@
   .mm-foot .b{flex:1; height:40px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-weight:600; border:1px solid var(--input); background:#fff;}
   .mm-foot .b.p{background:var(--primary); color:#fff; border-color:var(--primary);}
   .mm-foot .b.p.dis{background:#C7D2FE; border-color:#C7D2FE;}
-
-  /* ⑯행 스냅샷 */
-  .row16snap{width:440px; background:#fff; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; font-size:13px;}
+  .row16snap{width:420px; background:#fff; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; font-size:13px;}
   .row16snap .r{display:flex; border-bottom:1px solid var(--border);}
   .row16snap .r:last-child{border-bottom:none;}
   .row16snap .c{padding:10px 12px; border-right:1px solid var(--border);}
   .row16snap .c:last-child{border-right:none;}
-  .row16snap .lab{width:172px; background:#FFFDF3; font-weight:500;}
-  .row16snap .sh{width:78px; text-align:center; background:#FFFDF3;}
-  .row16snap .val{flex:1; background:#FFFDF3;}
-  .badge{font-size:11px; padding:2px 8px; border-radius:4px; font-weight:700;}
-  .badge.ok{background:#DCFCE7; color:#16A34A;}
-  .badge.warn{background:#FEF3C7; color:#B45309;}
-  .badge.legacy{background:#F3F4F6; color:#6B7280;}
-  .clink{color:var(--primary); font-size:12px; text-decoration:underline; font-weight:600;}
-  .locknote{font-size:10.5px; color:#9CA3AF;}
-
-  /* 인터랙티브 */
+  .row16snap .lab{width:172px; font-weight:500;}
+  .row16snap .sh{width:78px; text-align:center;}
+  .row16snap .val{flex:1;}
+  .confirmmm{width:340px;}
+  .confirmmm .mm-body{padding:8px 18px 14px;}
+  .confirmmm p{margin:0; font-size:13px; line-height:1.65;}
   .play{background:#fff; border:2px solid var(--primary); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:40px;}
   .play h2{font-size:15px; margin:0 0 6px;}
   .play p{font-size:12.5px; color:var(--sub); margin:0 0 12px; line-height:1.7;}
@@ -100,10 +81,9 @@
   .scn{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
   .scn button{border:1px solid var(--border); background:#fff; border-radius:20px; padding:6px 12px; font-size:12px; cursor:pointer;}
   .scn button.active{background:#111827; color:#fff; border-color:#111827;}
-
   .overlay{position:fixed; inset:0; background:rgba(17,24,39,.5); display:none; align-items:center; justify-content:center; z-index:80;}
   .overlay.show{display:flex;}
-  .modal{width:440px; background:#fff; border-radius:var(--radius-lg); box-shadow:0 20px 50px rgba(0,0,0,.25); overflow:hidden;}
+  .modal{width:420px; background:#fff; border-radius:var(--radius-lg); box-shadow:0 20px 50px rgba(0,0,0,.25); overflow:hidden;}
   .mhead{padding:18px 22px 14px; display:flex; justify-content:space-between; align-items:center;}
   .mhead h3{margin:0; font-size:16px; font-weight:700;}
   .mhead .x{cursor:pointer; color:var(--sub); font-size:18px; line-height:1;}
@@ -111,10 +91,8 @@
   .fld label{display:block; font-size:13px; margin-bottom:7px; font-weight:600;}
   .fld label .req{color:var(--destructive);}
   .fld select,.fld input{width:100%; padding:0 12px; height:42px; border:1px solid var(--input); border-radius:var(--radius-md); font-size:13.5px; background:#fff;}
-  .fld input:disabled{background:#F3F4F6; color:#9CA3AF;}
   .fld .err{color:var(--destructive); font-size:12px; margin-top:5px; display:none;}
   .fld .err.show{display:block;}
-  .fld .hint{font-size:11.5px; color:var(--sub); margin-top:5px;}
   .rbox2{border-radius:var(--radius-md); padding:11px 13px; font-size:12.5px; display:none; line-height:1.55;}
   .rbox2.show{display:block;}
   .rbox2.ok{background:#F0FDF4; color:#166534; border:1px solid #BBF7D0;}
@@ -122,39 +100,41 @@
   .rbox2.warn{background:#FFFBEB; color:#92400E; border:1px solid #FDE68A;}
   .mfoot{padding:16px 22px; display:flex; gap:8px;}
   .mfoot .btn{flex:1; height:44px;}
+  .confirmbox{width:380px;}
+  .confirmbox .mbody{padding:8px 22px 20px;}
+  .confirmbox p{margin:0; font-size:13.5px; line-height:1.7;}
   .liverow{margin-top:14px;}
 </style>
 </head>
 <body>
-<div class="devnote"><span>REF-2932 · 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그 (세부기획서 §5 기준 · BRICS 디자인 토큰)</span><b>v.26.07.200</b></div>
+<div class="devnote"><span>REF-2932 · 환급계좌 키인 유효성 검증 — 전체 케이스 카탈로그 v3 (7/15 기획리뷰 확정: 계좌 유효성 체크 · 자릿수 제한 없음 · 케이스 0~6)</span><b>v.26.07.200</b></div>
 
 <div class="wrap">
   <h1>환급계좌 키인 유효성 검증 — 상태별 전체 케이스</h1>
   <div class="sub">
-    세부기획서 §5-2(검증 규칙)·§5-3(검증 결과별 동작)·§5-5(기존 입력분 처리)에 정의된 모든 상태를 케이스별로 정리했다.
+    세부기획서 §5-2(검증 규칙)·§5-3(상태별 케이스)·§5-5(기존 입력분 처리)에 정의된 모든 상태를 케이스별로 정리했다.
     각 케이스는 <b>발생 조건 → 시스템 동작 → 노출 문구 → 해당 상태의 UI</b> 순으로 구성된다. 마지막 절에서 실제로 조작해볼 수 있다.<br>
-    원칙: <b>⑯ 국세환급금 계좌신고 행은 직접 수정 불가(읽기 전용)</b>이며 모든 입력·수정은 [계좌입력] 모달을 통해서만 이뤄진다.
+    원칙: <b>⑯ 국세환급금 계좌신고 행은 직접 수정 불가(읽기 전용)이며 값만 표기</b>된다. 예금주 확인은 하지 않으며 <b>계좌 실재 여부만</b> 확인한다.
   </div>
 
   <div class="toc">
     <b>목차</b>
     <a href="#c0">CASE 0. 기본 상태 (기존 입력분)</a>
-    <a href="#c1">CASE 1. 은행 미선택 / 계좌 미입력</a>
-    <a href="#c2">CASE 2. 자릿수 오류</a>
-    <a href="#c3">CASE 3. 존재하지 않는 계좌</a>
-    <a href="#c4">CASE 4. 예금주 불일치</a>
-    <a href="#c5">CASE 5. 조회 API 장애</a>
-    <a href="#c6">CASE 6. 성공 → 저장</a>
-    <a href="#c7">CASE 7. 직접입력 분기</a>
-    <a href="#c8">CASE 8. 저장 후 ⑯행 상태</a>
+    <a href="#c1">CASE 1. 필수값 미입력</a>
+    <a href="#c2">CASE 2. 계좌 확인 불가</a>
+    <a href="#c3">CASE 3. 체크 API 장애</a>
+    <a href="#c4">CASE 4. 성공 → 저장</a>
+    <a href="#c5">CASE 5. 저장 후 ⑯행 반영</a>
+    <a href="#c6">CASE 6. 미저장 변경사항 안내</a>
     <a href="#play">인터랙티브 확인</a>
   </div>
 
   <div class="flow">
-    <span class="fstep">[계좌입력] 클릭</span><span class="arr">→</span>
-    <span class="fstep">① 은행 선택 (코드 확정)</span><span class="arr">→</span>
-    <span class="fstep">② 계좌번호 입력 (숫자 10~15자)</span><span class="arr">→</span>
-    <span class="fstep">③ 예금주조회</span><span class="arr">→</span>
+    <span class="fstep">[계좌 수정] 클릭</span><span class="arr">→</span>
+    <span class="fstep">(미저장 시 안내)</span><span class="arr">→</span>
+    <span class="fstep">① 은행 선택</span><span class="arr">→</span>
+    <span class="fstep">② 계좌번호 입력</span><span class="arr">→</span>
+    <span class="fstep">계좌 유효성 체크</span><span class="arr">→</span>
     <span class="fstep">통과 시 [저장] 활성</span><span class="arr">→</span>
     <span class="fstep">⑯행 반영</span>
   </div>
@@ -166,23 +146,14 @@
       <div class="case-spec">
         <table>
           <tr><th>발생 조건</th><td>기능 배포 시점에 이미 자유 텍스트로 계좌가 입력돼 있던 딜</td></tr>
-          <tr><th>시스템 동작</th><td>일괄 <b>"직접입력"</b> 상태로 전환. 드롭다운 코드와 매칭되지 않는 은행은 <b>"선택 없음"</b>으로 노출해 재선택 유도. ⑯행 셀은 직접 수정 불가 — [변경] 클릭 시에만 모달 진입</td></tr>
-          <tr><th>표기</th><td><span class="msg">배지: <span class="badge legacy">직접입력·미검증</span> — 검증 이력 없음을 구분 표기</span></td></tr>
-          <tr><th>후속</th><td>담당자가 계좌 변경 요청 접수 시 [변경]으로 모달 열어 검증 절차 진행</td></tr>
+          <tr><th>시스템 동작</th><td>⑯행에는 기존 값이 그대로 표기된다(별도 표시 없음). [계좌 수정] 모달에는 "직접입력"이 <b>참고용 표시로만</b> 노출된다 — 그대로 재저장은 불가. 새로 저장하려면 은행 목록 선택 + 계좌번호 입력이 필요</td></tr>
+          <tr><th>후속</th><td>계좌 변경 요청 접수 시 [계좌 수정] 버튼으로 모달을 열어 은행 재선택 후 처리</td></tr>
         </table>
       </div>
       <div class="case-ui">
         <div class="row16snap">
-          <div class="r">
-            <div class="c lab">⑯ 국세환급금 계좌신고 <span class="locknote">(직접 수정 불가)</span></div>
-            <div class="c sh">거래은행</div>
-            <div class="c val">신한은행 <span class="badge legacy">직접입력·미검증</span></div>
-          </div>
-          <div class="r">
-            <div class="c lab"></div>
-            <div class="c sh">계좌번호</div>
-            <div class="c val mono">110491344284 &nbsp;<span class="clink">변경</span></div>
-          </div>
+          <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val">신한은행</div></div>
+          <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono">110491344284</div></div>
         </div>
       </div>
     </div>
@@ -190,24 +161,22 @@
 
   <!-- CASE 1 -->
   <div class="case" id="c1">
-    <div class="case-head"><div class="case-no n-red">1</div><h2>은행 미선택 / 계좌번호 미입력</h2><span class="case-tag t-err">형식 검증 — 입력 누락</span></div>
+    <div class="case-head"><div class="case-no n-red">1</div><h2>필수값 미입력</h2><span class="case-tag t-err">은행 미선택 또는 계좌번호 미입력</span></div>
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>은행을 선택하지 않았거나 계좌번호가 비어 있는 상태에서 [예금주조회] 시도</td></tr>
-          <tr><th>시스템 동작</th><td>조회 실행되지 않음. 누락된 필드에 각각 안내 문구 표시, [저장] 비활성 유지</td></tr>
-          <tr><th>노출 문구</th><td><span class="msg">은행을 선택해주세요.</span> &nbsp; <span class="msg">계좌번호를 입력해주세요.</span></td></tr>
-          <tr><th>후속</th><td>필드 입력 완료 후 재조회</td></tr>
+          <tr><th>발생 조건</th><td>은행을 선택하지 않았거나 계좌번호가 비어 있음</td></tr>
+          <tr><th>시스템 동작</th><td><b>[계좌 유효성 체크] 버튼이 비활성 상태</b> — 은행 선택 + 계좌번호 입력이 모두 채워져야 활성화됨. 버튼을 누를 수 없으므로 별도 에러 문구는 없음</td></tr>
+          <tr><th>후속</th><td>두 필드 모두 입력하면 체크 버튼 자동 활성화</td></tr>
         </table>
       </div>
       <div class="case-ui">
         <div class="mm">
-          <div class="mm-head"><h3>환급계좌 입력</h3><span class="x">✕</span></div>
+          <div class="mm-head"><h3>환급계좌 수정</h3><span class="x">✕</span></div>
           <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl ph errb">은행을 선택해주세요</div><div class="errtx">은행을 선택해주세요.</div></div>
-            <div class="mf"><label>은행명</label><div class="ctl dis">은행 선택 시 자동 입력됩니다</div></div>
-            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl ph errb">숫자만 입력 (10~15자)</div><div class="errtx">계좌번호를 입력해주세요.</div></div>
-            <div class="vbtn">예금주조회</div>
+            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl ph">은행을 선택해주세요</div></div>
+            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl ph">숫자만 입력</div></div>
+            <div class="vbtn dis">계좌 유효성 체크</div>
           </div>
           <div class="mm-foot"><div class="b">취소</div><div class="b p dis">저장</div></div>
         </div>
@@ -217,24 +186,24 @@
 
   <!-- CASE 2 -->
   <div class="case" id="c2">
-    <div class="case-head"><div class="case-no n-red">2</div><h2>자릿수 오류 — 10자 미만 또는 15자 초과</h2><span class="case-tag t-err">형식 검증 — §5-2 규칙 1</span></div>
+    <div class="case-head"><div class="case-no n-red">2</div><h2>계좌 확인 불가</h2><span class="case-tag t-err">계좌 유효성 체크 실패</span></div>
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>계좌번호가 숫자 10자 미만이거나 15자 초과 (숫자 외 문자는 입력 자체가 차단되고 하이픈은 자동 제거)</td></tr>
-          <tr><th>시스템 동작</th><td>즉시 형식 오류 표시, 예금주조회 실행 불가</td></tr>
-          <tr><th>노출 문구</th><td><span class="msg">계좌번호는 10자 이상 15자 이하 숫자여야 합니다.</span></td></tr>
-          <tr><th>후속</th><td>계좌번호 재입력</td></tr>
+          <tr><th>발생 조건</th><td>은행·계좌번호는 입력됐으나 체크 결과 해당 계좌가 실재하지 않거나 확인 불가</td></tr>
+          <tr><th>시스템 동작</th><td>실패 사유 노출, [저장] 비활성, 재시도 가능</td></tr>
+          <tr><th>노출 문구</th><td><span class="msg">계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.</span></td></tr>
+          <tr><th>후속</th><td>은행·계좌번호 정정 후 재체크</td></tr>
         </table>
       </div>
       <div class="case-ui">
         <div class="mm">
-          <div class="mm-head"><h3>환급계좌 입력</h3><span class="x">✕</span></div>
+          <div class="mm-head"><h3>환급계좌 수정</h3><span class="x">✕</span></div>
           <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">신한은행 (088)</div></div>
-            <div class="mf"><label>은행명</label><div class="ctl dis">신한은행</div></div>
-            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl errb mono">12345</div><div class="errtx">계좌번호는 10자 이상 15자 이하 숫자여야 합니다.</div></div>
-            <div class="vbtn dis">예금주조회</div>
+            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">KB국민은행</div></div>
+            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">1234567890123</div></div>
+            <div class="vbtn">계좌 유효성 체크</div>
+            <div class="rbox fail">계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.</div>
           </div>
           <div class="mm-foot"><div class="b">취소</div><div class="b p dis">저장</div></div>
         </div>
@@ -244,27 +213,26 @@
 
   <!-- CASE 3 -->
   <div class="case" id="c3">
-    <div class="case-head"><div class="case-no n-red">3</div><h2>존재하지 않는 계좌</h2><span class="case-tag t-err">예금주조회 실패 — 계좌 부재</span></div>
+    <div class="case-head"><div class="case-no n-amber">3</div><h2>계좌 유효성 체크 API 장애 — 경고 후 진행 허용</h2><span class="case-tag t-warn">§5-3 장애 예외</span></div>
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>형식은 통과했으나 예금주조회 결과 해당 은행에 계좌가 실재하지 않음</td></tr>
-          <tr><th>시스템 동작</th><td>실패 사유 노출, [저장] 비활성 유지, 재시도 가능</td></tr>
-          <tr><th>노출 문구</th><td><span class="msg">계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.</span></td></tr>
-          <tr><th>후속</th><td>은행·계좌번호 정정 후 재조회</td></tr>
+          <tr><th>발생 조건</th><td>계좌 유효성 체크 API(헥토, 실패 시 인포텍) 통신 장애·타임아웃</td></tr>
+          <tr><th>시스템 동작</th><td><b>작성을 전면 차단하지 않음</b> — 경고 노출 후 [저장] 활성화 허용. 확인 없이 저장된 건의 구분은 내부 데이터로만 관리(화면 표기 없음), 장애 복구 후 재확인 필요</td></tr>
+          <tr><th>노출 문구</th><td><span class="msg">계좌 확인 서비스에 일시 장애가 있습니다. 확인 없이 저장됩니다. 장애 복구 후 재확인이 필요합니다.</span></td></tr>
+          <tr><th>후속</th><td>저장 → ⑯행에 값 반영 → 장애 복구 후 [계좌 수정]으로 재확인 권장</td></tr>
         </table>
       </div>
       <div class="case-ui">
         <div class="mm">
-          <div class="mm-head"><h3>환급계좌 입력</h3><span class="x">✕</span></div>
+          <div class="mm-head"><h3>환급계좌 수정</h3><span class="x">✕</span></div>
           <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">KB국민은행 (004)</div></div>
-            <div class="mf"><label>은행명</label><div class="ctl dis">KB국민은행</div></div>
-            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">1234567890123</div></div>
-            <div class="vbtn">예금주조회</div>
-            <div class="rbox fail">계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.</div>
+            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">IBK기업은행</div></div>
+            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">01012345678901</div></div>
+            <div class="vbtn">계좌 유효성 체크</div>
+            <div class="rbox warn">계좌 확인 서비스에 일시 장애가 있습니다. 확인 없이 저장됩니다. 장애 복구 후 재확인이 필요합니다.</div>
           </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p dis">저장</div></div>
+          <div class="mm-foot"><div class="b">취소</div><div class="b p">저장</div></div>
         </div>
       </div>
     </div>
@@ -272,27 +240,26 @@
 
   <!-- CASE 4 -->
   <div class="case" id="c4">
-    <div class="case-head"><div class="case-no n-red">4</div><h2>예금주 불일치</h2><span class="case-tag t-err">예금주조회 실패 — 본인 대조 불합격</span></div>
+    <div class="case-head"><div class="case-no n-green">4</div><h2>성공 — 계좌 확인 완료</h2><span class="case-tag t-ok">정상 플로우</span></div>
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>계좌는 실재하나 조회된 예금주가 청구인(납세자 본인)과 일치하지 않음 <span class="locknote">※ 개명·법인 등 매칭 판정 기준은 오픈 이슈 #1 — 리뷰에서 확정</span></td></tr>
-          <tr><th>시스템 동작</th><td>불일치 사유 노출, [저장] 비활성 — 타인 계좌로 환급되는 것을 차단</td></tr>
-          <tr><th>노출 문구</th><td><span class="msg">조회된 예금주와 청구인 정보가 일치하지 않습니다. 고객에게 재확인 후 다시 입력해주세요.</span></td></tr>
-          <tr><th>후속</th><td>담당자가 고객에게 계좌 재확인 → 재입력·재조회</td></tr>
+          <tr><th>발생 조건</th><td>형식 통과 + 계좌 실재 확인</td></tr>
+          <tr><th>시스템 동작</th><td>[저장] 활성화. 저장 시 통과 계좌만 ⑯행에 반영되어 신고 파일 생성에 사용 (CASE 5)</td></tr>
+          <tr><th>노출 문구</th><td><span class="msg">계좌 확인이 완료되었습니다.</span></td></tr>
+          <tr><th>후속</th><td>[저장] → 모달 닫힘 → ⑯행에 은행·계좌번호 반영</td></tr>
         </table>
       </div>
       <div class="case-ui">
         <div class="mm">
-          <div class="mm-head"><h3>환급계좌 입력</h3><span class="x">✕</span></div>
+          <div class="mm-head"><h3>환급계좌 수정</h3><span class="x">✕</span></div>
           <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">우리은행 (020)</div></div>
-            <div class="mf"><label>은행명</label><div class="ctl dis">우리은행</div></div>
-            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">1002345678901</div></div>
-            <div class="vbtn">예금주조회</div>
-            <div class="rbox fail">조회된 예금주와 청구인 정보가 일치하지 않습니다. 고객에게 재확인 후 다시 입력해주세요.</div>
+            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">케이뱅크</div></div>
+            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">10012345678901</div></div>
+            <div class="vbtn">계좌 유효성 체크</div>
+            <div class="rbox ok">계좌 확인이 완료되었습니다.</div>
           </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p dis">저장</div></div>
+          <div class="mm-foot"><div class="b">취소</div><div class="b p">저장</div></div>
         </div>
       </div>
     </div>
@@ -300,27 +267,19 @@
 
   <!-- CASE 5 -->
   <div class="case" id="c5">
-    <div class="case-head"><div class="case-no n-amber">5</div><h2>조회 API 장애 — 경고 후 진행 허용</h2><span class="case-tag t-warn">§5-3 장애 예외</span></div>
+    <div class="case-head"><div class="case-no n-green">5</div><h2>저장 후 ⑯행 반영</h2><span class="case-tag t-info">§5-1 저장 후</span></div>
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>예금주조회 API(헥토, 실패 시 인포텍) 통신 장애·타임아웃</td></tr>
-          <tr><th>시스템 동작</th><td><b>작성을 전면 차단하지 않음</b> — 경고 노출 후 [저장] 활성화 허용. 저장 시 해당 건은 <b>미검증</b> 상태로 구분 표기되어 추후 재확인 대상이 됨</td></tr>
-          <tr><th>노출 문구</th><td><span class="msg">예금주조회 서비스에 일시 장애가 있습니다. 확인 없이 저장 시 미검증으로 표시되며, 추후 재확인이 필요합니다.</span></td></tr>
-          <tr><th>후속</th><td>저장 → ⑯행에 미검증 배지 (CASE 8-B) → 장애 복구 후 [변경]으로 재검증 권장</td></tr>
+          <tr><th>동작</th><td>저장된 은행명·계좌번호 값이 ⑯행에 <b>그대로 반영</b>된다. 별도 상태 표기(배지 등)는 없다 — ⑯행은 값만 표기하는 스프레드시트 셀이기 때문</td></tr>
+          <tr><th>변경</th><td>⑯행 셀은 직접 수정 불가 — 재변경도 [계좌 수정] 버튼을 통해서만 가능</td></tr>
+          <tr><th>작성완료</th><td>작성완료 시 계좌 미입력이면 입력 유도</td></tr>
         </table>
       </div>
       <div class="case-ui">
-        <div class="mm">
-          <div class="mm-head"><h3>환급계좌 입력</h3><span class="x">✕</span></div>
-          <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">IBK기업은행 (003)</div></div>
-            <div class="mf"><label>은행명</label><div class="ctl dis">IBK기업은행</div></div>
-            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">01012345678901</div></div>
-            <div class="vbtn">예금주조회</div>
-            <div class="rbox warn">예금주조회 서비스에 일시 장애가 있습니다. 확인 없이 저장 시 <b>미검증</b>으로 표시되며, 추후 재확인이 필요합니다.</div>
-          </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p">저장</div></div>
+        <div class="row16snap">
+          <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val">케이뱅크</div></div>
+          <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono">10012345678901</div></div>
         </div>
       </div>
     </div>
@@ -328,80 +287,21 @@
 
   <!-- CASE 6 -->
   <div class="case" id="c6">
-    <div class="case-head"><div class="case-no n-green">6</div><h2>성공 — 예금주 확인 완료</h2><span class="case-tag t-ok">정상 플로우</span></div>
+    <div class="case-head"><div class="case-no n-indigo">6</div><h2>미저장 변경사항 안내</h2><span class="case-tag t-info">신규 — §5-3 케이스 6</span></div>
     <div class="case-body">
       <div class="case-spec">
         <table>
-          <tr><th>발생 조건</th><td>형식 통과 + 계좌 실재 + 예금주-청구인 매칭 성공</td></tr>
-          <tr><th>시스템 동작</th><td>[저장] 활성화. 저장 시 통과 계좌만 ⑯행에 반영되어 신고 파일 생성에 사용 (CASE 8-A)</td></tr>
-          <tr><th>노출 문구</th><td><span class="msg">예금주 확인 완료 — 홍길동 님 계좌로 확인되었습니다.</span></td></tr>
-          <tr><th>후속</th><td>[저장] → 모달 닫힘 → ⑯행 마스킹 표기 + 검증완료 배지</td></tr>
+          <tr><th>발생 조건</th><td>신고서 시트에 저장되지 않은 변경(엔터·저장 미실행)이 있는 상태에서 [계좌 수정] 클릭</td></tr>
+          <tr><th>시스템 동작</th><td>계좌 수정 모달 열기 전 <b>안내 팝업</b>이 먼저 뜬다. 강제 저장·차단은 없음 — [취소] 선택 시 팝업만 닫고 복귀(시트 저장 후 재시도 가능), [계속] 선택 시 계좌 수정 모달 진입</td></tr>
+          <tr><th>노출 문구</th><td><span class="msg">저장되지 않은 변경사항이 있습니다. 계좌 수정을 진행하면 저장되지 않은 내용은 사라질 수 있습니다. 계속하시겠습니까?</span></td></tr>
+          <tr><th>사유</th><td>계좌 저장 시 모델을 재호출하는 구조라, 시트에 저장 안 된 변경이 있으면 유실될 수 있어 사전 고지</td></tr>
         </table>
       </div>
       <div class="case-ui">
-        <div class="mm">
-          <div class="mm-head"><h3>환급계좌 입력</h3><span class="x">✕</span></div>
-          <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">케이뱅크 (089)</div></div>
-            <div class="mf"><label>은행명</label><div class="ctl dis">케이뱅크</div></div>
-            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl mono">10012345678901</div></div>
-            <div class="vbtn">예금주조회</div>
-            <div class="rbox ok">예금주 확인 완료 — <b>홍길동</b> 님 계좌로 확인되었습니다.</div>
-          </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p">저장</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CASE 7 -->
-  <div class="case" id="c7">
-    <div class="case-head"><div class="case-no n-indigo">7</div><h2>직접입력 분기 — 드롭다운에 없는 은행</h2><span class="case-tag t-info">§5-1 직접입력</span></div>
-    <div class="case-body">
-      <div class="case-spec">
-        <table>
-          <tr><th>발생 조건</th><td>고객 계좌 은행이 드롭다운 목록에 없음 (드롭다운은 제품 등록 가능 은행 목록과 동일 코드)</td></tr>
-          <tr><th>시스템 동작</th><td>"직접 입력" 선택 시에만 은행명 필드가 활성화되어 키인 가능. 그 외에는 은행명 필드 항상 잠금(자동 입력). 계좌번호 형식 검증은 동일 적용 <span class="locknote">※ 직접입력 은행의 예금주조회 가능 여부는 오픈 이슈 #3 — BE 확인</span></td></tr>
-          <tr><th>노출 문구</th><td><span class="msg">은행명을 직접 입력해주세요.</span></td></tr>
-          <tr><th>후속</th><td>조회 가능 은행이면 정상 플로우, 불가 은행이면 미검증 저장 허용 여부 BE 확인 후 확정</td></tr>
-        </table>
-      </div>
-      <div class="case-ui">
-        <div class="mm">
-          <div class="mm-head"><h3>환급계좌 입력</h3><span class="x">✕</span></div>
-          <div class="mm-body">
-            <div class="mf"><label>은행 선택 <span class="req">*</span></label><div class="ctl">직접 입력</div></div>
-            <div class="mf"><label>은행명</label><div class="ctl ph" style="border-color:var(--ring); outline:1px solid var(--ring); outline-offset:-1px;">은행명을 직접 입력해주세요</div><div class="hinttx">드롭다운에 없는 은행 전용입니다.</div></div>
-            <div class="mf"><label>계좌번호 <span class="req">*</span></label><div class="ctl ph">숫자만 입력 (10~15자)</div></div>
-            <div class="vbtn">예금주조회</div>
-          </div>
-          <div class="mm-foot"><div class="b">취소</div><div class="b p dis">저장</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CASE 8 -->
-  <div class="case" id="c8">
-    <div class="case-head"><div class="case-no n-green">8</div><h2>저장 후 ⑯행 상태 — 2가지</h2><span class="case-tag t-info">§5-1 저장 후</span></div>
-    <div class="case-body">
-      <div class="case-spec">
-        <table>
-          <tr><th>A. 검증완료</th><td>정상 플로우(CASE 6)로 저장된 계좌 — 마스킹 표기 + <span class="badge ok">검증완료</span> 배지 + [변경] 링크. 이 값이 신고 파일 생성에 사용됨</td></tr>
-          <tr><th>B. 미검증</th><td>API 장애 중(CASE 5) 저장된 계좌 — <span class="badge warn">미검증</span> 배지로 구분 표기, 추후 재확인 대상</td></tr>
-          <tr><th>공통</th><td>⑯행 셀 자체는 계속 직접 수정 불가. 변경은 [변경] → 모달에서만. 작성완료 시 계좌 미입력이면 입력 유도</td></tr>
-        </table>
-      </div>
-      <div class="case-ui">
-        <div style="display:flex; flex-direction:column; gap:14px;">
-          <div class="row16snap">
-            <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val">케이뱅크 <span class="badge ok">검증완료</span></div></div>
-            <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono">1001****8901 &nbsp;<span class="clink">변경</span></div></div>
-          </div>
-          <div class="row16snap">
-            <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val">IBK기업은행 <span class="badge warn">미검증</span></div></div>
-            <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono">0101****8901 &nbsp;<span class="clink">변경</span></div></div>
-          </div>
+        <div class="mm confirmmm">
+          <div class="mm-head"><h3>알림</h3><span class="x">✕</span></div>
+          <div class="mm-body"><p>저장되지 않은 변경사항이 있습니다. 계좌 수정을 진행하면 저장되지 않은 내용은 사라질 수 있습니다. 계속하시겠습니까?</p></div>
+          <div class="mm-foot"><div class="b">취소</div><div class="b p">계속</div></div>
         </div>
       </div>
     </div>
@@ -410,60 +310,60 @@
   <!-- 인터랙티브 -->
   <div class="play" id="play">
     <h2>인터랙티브 확인</h2>
-    <p>시나리오를 선택한 뒤 [계좌입력]을 누르면 위 케이스가 실제 모달로 재현됩니다. 저장 결과는 아래 ⑯행에 반영됩니다.</p>
+    <p>시나리오를 선택한 뒤 [계좌 수정]을 누르면 위 케이스가 실제 모달로 재현됩니다. 저장 결과는 아래 ⑯행에 값으로 반영됩니다.</p>
     <div class="scn" id="scnGroup">
       <button data-s="none" class="active">기본</button>
       <button data-s="empty">CASE 1 미입력</button>
-      <button data-s="digit">CASE 2 자릿수</button>
-      <button data-s="notfound">CASE 3 계좌부재</button>
-      <button data-s="mismatch">CASE 4 예금주불일치</button>
-      <button data-s="apierror">CASE 5 API장애</button>
-      <button data-s="success">CASE 6 성공</button>
-      <button data-s="etc">CASE 7 직접입력</button>
+      <button data-s="notfound">CASE 2 확인불가</button>
+      <button data-s="apierror">CASE 3 API장애</button>
+      <button data-s="success">CASE 4 성공</button>
+      <button data-s="unsaved">CASE 6 미저장</button>
     </div>
-    <button class="btn" id="openBtn">계좌입력</button>
+    <button class="btn" id="openBtn">계좌 수정</button>
     <div class="liverow">
-      <div class="row16snap" style="width:100%; max-width:560px;">
-        <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고 <span class="locknote">(직접 수정 불가)</span></div><div class="c sh">거래은행</div><div class="c val" id="liveBank">신한은행 <span class="badge legacy">직접입력·미검증</span></div></div>
-        <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono" id="liveAcct">110491344284 &nbsp;<span class="clink" onclick="openModal()">변경</span></div></div>
+      <div class="row16snap" style="width:100%; max-width:520px;">
+        <div class="r"><div class="c lab">⑯ 국세환급금 계좌신고</div><div class="c sh">거래은행</div><div class="c val" id="liveBank">신한은행</div></div>
+        <div class="r"><div class="c lab"></div><div class="c sh">계좌번호</div><div class="c val mono" id="liveAcct">110491344284</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 모달 (인터랙티브) -->
+<div class="overlay" id="unsavedOverlay">
+  <div class="modal confirmbox">
+    <div class="mhead"><h3>알림</h3><span class="x" onclick="closeUnsaved(false)">✕</span></div>
+    <div class="mbody"><p>저장되지 않은 변경사항이 있습니다. 계좌 수정을 진행하면 저장되지 않은 내용은 사라질 수 있습니다. 계속하시겠습니까?</p></div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeUnsaved(false)">취소</button>
+      <button class="btn primary" onclick="closeUnsaved(true)">계속</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay">
   <div class="modal">
-    <div class="mhead"><h3>환급계좌 입력</h3><span class="x" onclick="closeModal()">✕</span></div>
+    <div class="mhead"><h3>환급계좌 수정</h3><span class="x" onclick="closeModal()">✕</span></div>
     <div class="mbody">
       <div class="fld">
         <label>은행 선택 <span class="req">*</span></label>
-        <select id="bank" onchange="onBankChange()">
+        <select id="bank" onchange="onFieldChange()">
           <option value="">은행을 선택해주세요</option>
-          <option value="088" data-name="신한은행">신한은행 (088)</option>
-          <option value="004" data-name="KB국민은행">KB국민은행 (004)</option>
-          <option value="020" data-name="우리은행">우리은행 (020)</option>
-          <option value="003" data-name="IBK기업은행">IBK기업은행 (003)</option>
-          <option value="089" data-name="케이뱅크">케이뱅크 (089)</option>
-          <option value="092" data-name="토스뱅크">토스뱅크 (092)</option>
-          <option value="etc">직접 입력</option>
+          <option value="088" data-name="신한은행">신한은행</option>
+          <option value="004" data-name="KB국민은행">KB국민은행</option>
+          <option value="020" data-name="우리은행">우리은행</option>
+          <option value="003" data-name="IBK기업은행">IBK기업은행</option>
+          <option value="089" data-name="케이뱅크">케이뱅크</option>
+          <option value="092" data-name="토스뱅크">토스뱅크</option>
         </select>
-        <div class="err" id="errBank">은행을 선택해주세요.</div>
-      </div>
-      <div class="fld">
-        <label>은행명</label>
-        <input id="bankName" type="text" placeholder="은행 선택 시 자동 입력됩니다" disabled>
-        <div class="hint">드롭다운에 없는 은행은 "직접 입력" 선택 시에만 입력할 수 있습니다.</div>
       </div>
       <div class="fld">
         <label>계좌번호 <span class="req">*</span></label>
-        <input class="mono" id="acctNo" type="text" placeholder="숫자만 입력 (10~15자)" maxlength="15" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-        <div class="err" id="errAcct">계좌번호는 10자 이상 15자 이하 숫자여야 합니다.</div>
+        <input class="mono" id="acctNo" type="text" placeholder="숫자만 입력" oninput="this.value=this.value.replace(/[^0-9]/g,''); onFieldChange()">
       </div>
-      <button class="btn" style="width:100%; height:44px;" onclick="doVerify()">예금주조회</button>
-      <div class="rbox2 ok" id="resOk">예금주 확인 완료 — <b>홍길동</b> 님 계좌로 확인되었습니다.</div>
-      <div class="rbox2 fail" id="resFail"><span id="failMsg"></span></div>
-      <div class="rbox2 warn" id="resWarn">예금주조회 서비스에 일시 장애가 있습니다. 확인 없이 저장 시 <b>미검증</b>으로 표시되며, 추후 재확인이 필요합니다.</div>
+      <button class="btn" style="width:100%; height:44px;" id="verifyBtn" disabled onclick="doVerify()">계좌 유효성 체크</button>
+      <div class="rbox2 ok" id="resOk">계좌 확인이 완료되었습니다.</div>
+      <div class="rbox2 fail" id="resFail"><span id="failMsg">계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.</span></div>
+      <div class="rbox2 warn" id="resWarn">계좌 확인 서비스에 일시 장애가 있습니다. 확인 없이 저장됩니다. 장애 복구 후 재확인이 필요합니다.</div>
     </div>
     <div class="mfoot">
       <button class="btn" onclick="closeModal()">취소</button>
@@ -477,58 +377,47 @@ let scenario='none', verified=false;
 document.querySelectorAll('#scnGroup button').forEach(b=>{
   b.onclick=()=>{document.querySelectorAll('#scnGroup button').forEach(x=>x.classList.remove('active'));b.classList.add('active');scenario=b.dataset.s;};
 });
+document.getElementById('openBtn').onclick=()=>{
+  if(scenario==='unsaved'){document.getElementById('unsavedOverlay').classList.add('show');}
+  else{openModal();}
+};
+function closeUnsaved(proceed){document.getElementById('unsavedOverlay').classList.remove('show');if(proceed)openModal();}
 function openModal(){document.getElementById('overlay').classList.add('show');reset();preset();}
 function closeModal(){document.getElementById('overlay').classList.remove('show');}
 function reset(){
   document.getElementById('bank').value='';
-  const bn=document.getElementById('bankName'); bn.value=''; bn.disabled=true; bn.placeholder='은행 선택 시 자동 입력됩니다';
   document.getElementById('acctNo').value='';
-  ['errBank','errAcct','resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  ['resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  document.getElementById('verifyBtn').disabled=true;
   document.getElementById('saveBtn').disabled=true; verified=false;
 }
 function preset(){
-  if(scenario==='digit'){setBank('088');document.getElementById('acctNo').value='12345';}
-  if(scenario==='notfound'){setBank('004');document.getElementById('acctNo').value='1234567890123';}
-  if(scenario==='mismatch'){setBank('020');document.getElementById('acctNo').value='1002345678901';}
-  if(scenario==='apierror'){setBank('003');document.getElementById('acctNo').value='01012345678901';}
-  if(scenario==='success'){setBank('089');document.getElementById('acctNo').value='10012345678901';}
-  if(scenario==='etc'){setBank('etc');}
+  if(scenario==='notfound'){document.getElementById('bank').value='004';document.getElementById('acctNo').value='1234567890123';onFieldChange();}
+  if(scenario==='apierror'){document.getElementById('bank').value='003';document.getElementById('acctNo').value='01012345678901';onFieldChange();}
+  if(scenario==='success'){document.getElementById('bank').value='089';document.getElementById('acctNo').value='10012345678901';onFieldChange();}
 }
-function setBank(v){document.getElementById('bank').value=v;onBankChange();}
-function onBankChange(){
-  const sel=document.getElementById('bank'), bn=document.getElementById('bankName');
-  if(sel.value==='etc'){bn.disabled=false;bn.value='';bn.placeholder='은행명을 직접 입력해주세요';}
-  else if(sel.value){bn.disabled=true;bn.value=sel.options[sel.selectedIndex].dataset.name||'';}
-  else{bn.disabled=true;bn.value='';bn.placeholder='은행 선택 시 자동 입력됩니다';}
+function onFieldChange(){
+  const bank=document.getElementById('bank').value, acct=document.getElementById('acctNo').value;
+  document.getElementById('verifyBtn').disabled=!(bank&&acct);
+  ['resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  document.getElementById('saveBtn').disabled=true;
 }
 function doVerify(){
   const bank=document.getElementById('bank').value, acct=document.getElementById('acctNo').value;
-  ['errBank','errAcct','resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  ['resOk','resFail','resWarn'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.getElementById('saveBtn').disabled=true;
-  if(scenario==='empty'||!bank||!acct){
-    if(!bank)document.getElementById('errBank').classList.add('show');
-    if(!acct){document.getElementById('errAcct').textContent='계좌번호를 입력해주세요.';document.getElementById('errAcct').classList.add('show');}
-    return;
-  }
-  if(scenario==='digit'||acct.length<10||acct.length>15){
-    document.getElementById('errAcct').textContent='계좌번호는 10자 이상 15자 이하 숫자여야 합니다.';
-    document.getElementById('errAcct').classList.add('show');return;
-  }
-  if(scenario==='notfound'){document.getElementById('failMsg').textContent='계좌를 확인할 수 없습니다. 은행과 계좌번호를 다시 확인해주세요.';document.getElementById('resFail').classList.add('show');return;}
-  if(scenario==='mismatch'){document.getElementById('failMsg').textContent='조회된 예금주와 청구인 정보가 일치하지 않습니다. 고객에게 재확인 후 다시 입력해주세요.';document.getElementById('resFail').classList.add('show');return;}
+  if(scenario==='empty'||!bank||!acct)return;
+  if(scenario==='notfound'){document.getElementById('resFail').classList.add('show');return;}
   if(scenario==='apierror'){document.getElementById('resWarn').classList.add('show');verified='warn';document.getElementById('saveBtn').disabled=false;return;}
   document.getElementById('resOk').classList.add('show');verified=true;document.getElementById('saveBtn').disabled=false;
 }
 function doSave(){
   const sel=document.getElementById('bank');
-  const label=sel.value==='etc'?document.getElementById('bankName').value:(sel.options[sel.selectedIndex].dataset.name||'');
-  const acct=document.getElementById('acctNo').value;
-  const masked=acct.slice(0,4)+'****'+acct.slice(-4);
-  document.getElementById('liveBank').innerHTML=label+' <span class="badge '+(verified==='warn'?'warn':'ok')+'">'+(verified==='warn'?'미검증':'검증완료')+'</span>';
-  document.getElementById('liveAcct').innerHTML=masked+' &nbsp;<span class="clink" onclick="openModal()">변경</span>';
+  const label=sel.options[sel.selectedIndex].dataset.name||'';
+  document.getElementById('liveBank').textContent=label;
+  document.getElementById('liveAcct').textContent=document.getElementById('acctNo').value;
   closeModal();
 }
-document.getElementById('openBtn').onclick=openModal;
 </script>
 </body>
 </html>
