@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>재계산 미실행 노티 — 동작 프로토타입</title>
+<title>재계산 미실행 노티 — 동작 프로토타입 v0.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -35,9 +35,13 @@
     font-size:12px;
   }
   .simbar .tag{color:#9AA0B4;letter-spacing:.03em;text-transform:uppercase;font-weight:700;font-size:11px;}
+  .simbar .controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
   .toggle-group{display:flex;gap:4px;background:#12141C;border-radius:8px;padding:3px;}
   .toggle-group button{border:none;background:transparent;color:#9AA0B4;font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:6px;cursor:pointer;}
   .toggle-group button.active{background:#fff;color:var(--text);}
+  .stage-select{display:flex;align-items:center;gap:8px;color:#9AA0B4;font-weight:600;}
+  .stage-select select{background:#12141C;color:#fff;border:1px solid #2E3140;border-radius:7px;padding:7px 10px;font-family:inherit;font-size:12.5px;font-weight:600;}
+  .stage-select.disabled{opacity:.35;pointer-events:none;}
 
   /* --- app shell --- */
   .app{max-width:1180px;margin:0 auto;background:#fff;min-height:100vh;}
@@ -66,7 +70,7 @@
   .stage-tab.done{background:#fff;color:var(--text);}
   .stage-tab.active{background:var(--stage-active);color:var(--primary-dark);z-index:2;}
 
-  /* sub tab + validate row */
+  /* sub tab + submit/validate row */
   .subrow{display:flex;justify-content:space-between;align-items:center;padding:22px 30px 0;flex-wrap:wrap;gap:14px;}
   .subtabs{display:flex;gap:8px;}
   .subtab{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:inherit;}
@@ -99,9 +103,9 @@
   .log-row{display:flex;justify-content:space-between;padding:9px 12px;border-radius:8px;background:#F7F8FA;font-size:12px;margin-bottom:6px;}
   .log-row .tag{background:var(--warn-bg);color:var(--warn-icon);font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:5px;border:1px solid var(--warn-border);}
 
-  /* --- 선행단계/재계산 알림 카드 (기존 패턴 재사용) --- */
+  /* --- 재계산 미실행 알림 카드 (기존 "선행 단계 데이터 변경" 알림 패턴 재사용) --- */
   .legacy-toast{
-    position:fixed;right:24px;bottom:24px;width:400px;max-width:88vw;
+    position:fixed;right:24px;bottom:24px;width:420px;max-width:88vw;
     background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:14px;
     padding:18px 20px;box-shadow:0 16px 40px rgba(60,45,10,.16);
     display:flex;gap:12px;transform:translateY(16px);opacity:0;pointer-events:none;transition:.25s;z-index:50;
@@ -115,16 +119,45 @@
   .legacy-toast .cta:hover{background:var(--primary-dark);}
   .legacy-toast .x{position:absolute;top:12px;right:14px;border:none;background:none;color:var(--warn-icon);opacity:.55;font-size:13px;cursor:pointer;}
 
+  /* --- 전자파일 제출 팝업 (기존 제출 확인 팝업과 동일 스타일 — 문구만 케이스별 변경) --- */
+  .modal-dim{position:fixed;inset:0;background:rgba(15,17,26,.45);display:none;align-items:center;justify-content:center;z-index:60;}
+  .modal-dim.show{display:flex;}
+  .submit-modal{
+    background:#fff;border-radius:14px;width:480px;max-width:90vw;
+    padding:24px 26px 22px;box-shadow:0 24px 60px rgba(15,17,26,.25);position:relative;
+    font-family:inherit;
+  }
+  .submit-modal .m-title{font-size:15.5px;font-weight:700;color:var(--text);margin:0 0 18px;}
+  .submit-modal .m-x{position:absolute;top:18px;right:20px;border:none;background:none;color:var(--muted);font-size:14px;cursor:pointer;}
+  .submit-modal .m-body{font-size:13.5px;color:var(--text);line-height:1.7;margin:0 0 24px;white-space:pre-line;}
+  .submit-modal .m-body b{font-weight:700;}
+  .submit-modal .m-actions{display:flex;justify-content:flex-end;gap:8px;}
+  .submit-modal .m-btn{font-family:inherit;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;cursor:pointer;}
+  .submit-modal .m-btn.cancel{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
+  .submit-modal .m-btn.ok{background:var(--primary);color:#fff;border:1.5px solid var(--primary);}
+  .submit-modal .m-btn.ok:hover{background:var(--primary-dark);}
+
   .footnote{max-width:1180px;margin:0 auto 40px;padding:0 30px;font-size:11.5px;color:var(--muted);line-height:1.6;}
 </style>
 </head>
 <body>
 
   <div class="simbar">
-    <span class="tag">프로토타입 컨트롤 (실제 화면 아님) · REF-2999</span>
-    <div class="toggle-group">
-      <button id="btn-normal" class="active">케이스: 정상</button>
-      <button id="btn-issue">케이스: 재계산 미실행</button>
+    <span class="tag">프로토타입 컨트롤 (실제 화면 아님) · REF-2999 · v0.3</span>
+    <div class="controls">
+      <div class="toggle-group">
+        <button id="btn-normal" class="active">케이스: 정상</button>
+        <button id="btn-issue">케이스: 재계산 미실행</button>
+      </div>
+      <div class="stage-select disabled" id="stageSelectWrap">
+        <span>최초 미실행 단계</span>
+        <select id="stageSelect">
+          <option value="예비검토" selected>예비검토</option>
+          <option value="사전작업">사전작업</option>
+          <option value="본검토">본검토</option>
+          <option value="작성">작성</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -160,12 +193,12 @@
 
     <div class="subrow">
       <div class="subtabs">
-        <button class="subtab on">전자파일 제출</button>
+        <button class="subtab on" id="submitBtn">전자파일 제출</button>
         <button class="subtab off">부속서류 제출</button>
       </div>
       <div class="validate-actions">
         <button class="txt-btn">TXT<br>다운로드</button>
-        <div class="verify-status">검증완료<b id="lastVerified">마지막 검증일시 2026.07.15 14:32</b></div>
+        <div class="verify-status">검증완료<b id="lastVerified">마지막 검증일시 2026.07.20 09:58:10</b></div>
         <button class="verify-btn" id="verifyBtn">
           <span class="spinner" id="verifySpinner"></span>
           <span id="verifyLabel">검증하기</span>
@@ -187,39 +220,77 @@
   <div class="logpanel">
     <div class="card">
       <h3>이벤트 로그 (무시 건 기록 — 시뮬레이션)</h3>
-      <p class="sub">[그래도 검증 진행]을 선택한 건이 이 위치에 기록됩니다. (실제 저장 위치는 개발 확정 전)</p>
+      <p class="sub">[그래도 검증 진행] 또는 미실행 상태에서 [제출]을 선택한 건이 이 위치에 기록됩니다. (실제 저장 위치·제출 경로 기록 여부는 개발 확정 전)</p>
       <div id="logList"><div class="log-empty" id="logEmpty">기록된 이벤트가 없습니다</div></div>
     </div>
   </div>
 
-  <div class="footnote">※ 프로토타입입니다 — 화면 톤은 실제 브릭스웍스 전자신고 화면을 기준으로 맞췄으며, 판정 로직 및 데이터 연동은 개발 확정 전입니다.</div>
+  <div class="footnote">※ 프로토타입입니다 — 화면 톤은 실제 브릭스웍스 전자신고 화면 기준, 알림 카드는 기존 "선행 단계 데이터 변경" 알림 패턴, 제출 팝업은 기존 전자파일 제출 확인 팝업과 통일했습니다. 판정 로직·데이터 연동은 개발 확정 전이며, FE 구현 시 본 코드가 아닌 기존 제품 컴포넌트를 재사용합니다.<br>※ 판정 원칙: 앞 단계에서 값이 수정되면 이후 단계도 순서대로 모두 재계산해야 하므로, 안내는 <b>수정이 발견된 가장 앞선 단계</b>를 기준으로 합니다. 상단 컨트롤에서 최초 미실행 단계를 바꿔가며 문구를 확인하세요.</div>
 
+  <!-- 검증하기 → 알림 카드 (기존 알림 패턴 재사용) -->
   <div class="legacy-toast" id="toast">
     <button class="x" id="toastClose">✕</button>
     <span class="icon">⚠︎</span>
     <div>
-      <b class="title">재계산이 실행되지 않았습니다</b>
-      <p><span id="toastBody">작성 단계의 데이터가 수정되었으나, 재계산이 아직 실행되지 않았습니다.</span> <b>그래도 진행하시려면 아래 버튼을 눌러주세요.</b></p>
+      <b class="title" id="toastTitle">예비검토 단계에서 재계산이 실행되지 않았습니다</b>
+      <p><span id="toastBody">예비검토 단계에서 값이 수정된 후 재계산이 진행되지 않았습니다.</span> <b>그래도 진행하시려면 아래 버튼을 눌러주세요.</b></p>
       <button class="cta" id="proceedBtn">그래도 검증 진행</button>
     </div>
   </div>
 
+  <!-- 전자파일 제출 팝업 (기존 제출 확인 팝업과 동일 스타일, 문구만 케이스별 변경) -->
+  <div class="modal-dim" id="submitDim">
+    <div class="submit-modal">
+      <button class="m-x" id="submitX">✕</button>
+      <p class="m-title">전자파일 제출</p>
+      <p class="m-body" id="submitBody">전자파일 제출하시겠습니까?</p>
+      <div class="m-actions">
+        <button class="m-btn cancel" id="submitCancel">취소</button>
+        <button class="m-btn ok" id="submitOk">제출</button>
+      </div>
+    </div>
+  </div>
+
 <script>
+  // 단계 순서 — 재계산은 '작성' 단계까지 존재. 앞 단계 수정 시 이후 단계 순차 재계산 필요.
+  const RECALC_STAGES = ['예비검토','사전작업','본검토','작성'];
+
   let caseState = 'normal';
   const btnNormal = document.getElementById('btn-normal');
   const btnIssue = document.getElementById('btn-issue');
+  const stageSelectWrap = document.getElementById('stageSelectWrap');
+  const stageSelect = document.getElementById('stageSelect');
   const verifyBtn = document.getElementById('verifyBtn');
   const verifySpinner = document.getElementById('verifySpinner');
   const verifyLabel = document.getElementById('verifyLabel');
   const toast = document.getElementById('toast');
+  const toastTitle = document.getElementById('toastTitle');
+  const toastBody = document.getElementById('toastBody');
   const toastClose = document.getElementById('toastClose');
   const proceedBtn = document.getElementById('proceedBtn');
   const lastVerified = document.getElementById('lastVerified');
   const logList = document.getElementById('logList');
   const logEmpty = document.getElementById('logEmpty');
+  const submitBtn = document.getElementById('submitBtn');
+  const submitDim = document.getElementById('submitDim');
+  const submitBody = document.getElementById('submitBody');
+  const submitCancel = document.getElementById('submitCancel');
+  const submitOk = document.getElementById('submitOk');
+  const submitX = document.getElementById('submitX');
 
-  btnNormal.onclick = () => { caseState='normal'; btnNormal.classList.add('active'); btnIssue.classList.remove('active'); };
-  btnIssue.onclick = () => { caseState='issue'; btnIssue.classList.add('active'); btnNormal.classList.remove('active'); };
+  btnNormal.onclick = () => { caseState='normal'; btnNormal.classList.add('active'); btnIssue.classList.remove('active'); stageSelectWrap.classList.add('disabled'); };
+  btnIssue.onclick = () => { caseState='issue'; btnIssue.classList.add('active'); btnNormal.classList.remove('active'); stageSelectWrap.classList.remove('disabled'); };
+
+  function firstStage(){ return stageSelect.value; }
+  function cascadeChain(stage){
+    const idx = RECALC_STAGES.indexOf(stage);
+    return RECALC_STAGES.slice(idx); // 해당 단계 포함, 이후 단계 순서대로
+  }
+  function cascadeText(stage){
+    const chain = cascadeChain(stage);
+    if (chain.length === 1) return `${stage} 단계 재계산을 실행한 뒤 다시 검증해 주세요.`;
+    return `${stage} 단계부터 이후 단계(${chain.join(' → ')})를 순서대로 재계산한 뒤 다시 검증해 주세요.`;
+  }
 
   function nowStr(){
     const d = new Date();
@@ -227,14 +298,15 @@
     return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
   }
 
-  function addLog(){
+  function addLog(kind, stage){
     logEmpty.style.display = 'none';
     const row = document.createElement('div');
     row.className = 'log-row';
-    row.innerHTML = `<span><span class="tag">그래도 진행</span>&nbsp; 삥펑휘(651110) · 전자신고 단계</span><span class="mono">${nowStr()}</span>`;
+    row.innerHTML = `<span><span class="tag">${kind}</span>&nbsp; 삥펑휘(651110) · 전자신고 단계 · 최초 미실행: ${stage}</span><span class="mono">${nowStr()}</span>`;
     logList.prepend(row);
   }
 
+  // ─ 검증하기 경로 ─
   verifyBtn.onclick = () => {
     verifyBtn.disabled = true;
     verifySpinner.style.display = 'inline-block';
@@ -246,6 +318,9 @@
       if (caseState === 'normal') {
         lastVerified.textContent = '마지막 검증일시 ' + nowStr();
       } else {
+        const s = firstStage();
+        toastTitle.textContent = `${s} 단계에서 재계산이 실행되지 않았습니다`;
+        toastBody.textContent = `${s} 단계에서 값이 수정된 후 재계산이 진행되지 않았습니다. ${cascadeText(s)}`;
         toast.classList.add('show');
       }
     }, 500);
@@ -253,10 +328,32 @@
 
   proceedBtn.onclick = () => {
     toast.classList.remove('show');
-    addLog();
+    addLog('그래도 검증 진행', firstStage());
     lastVerified.textContent = '마지막 검증일시 ' + nowStr();
   };
-  toastClose.onclick = () => toast.classList.remove('show');
+  toastClose.onclick = () => toast.classList.remove('show'); // 닫기만 = 진행·기록 없음, 재시도 가능
+
+  // ─ 전자파일 제출 경로 (기존 팝업 문구만 케이스별 변경) ─
+  submitBtn.onclick = () => {
+    if (caseState === 'normal') {
+      submitBody.innerHTML = '전자파일 제출하시겠습니까?';
+    } else {
+      const s = firstStage();
+      submitBody.innerHTML =
+        `<b>${s} 단계에서 수정된 내용이 있으나 재계산이 실행되지 않았습니다.</b>\n` +
+        `${s} 단계부터 이후 단계를 순서대로 재계산하고 검증을 완료한 뒤 제출해 주세요.\n\n` +
+        `그래도 제출하시겠습니까?`;
+    }
+    submitDim.classList.add('show');
+  };
+
+  function closeSubmit(){ submitDim.classList.remove('show'); }
+  submitCancel.onclick = closeSubmit; // 취소 = 진행·기록 없음
+  submitX.onclick = closeSubmit;
+  submitOk.onclick = () => {
+    closeSubmit();
+    if (caseState === 'issue') addLog('그래도 제출', firstStage()); // 제출 경로 기록 여부는 Jon 확인 전 — 시뮬레이션상 기록
+  };
 </script>
 </body>
 </html>
