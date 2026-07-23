@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전자신고 큐 — 동작 구조 정리</title>
+<style>
+  :root{
+    --ink:#1a2332;
+    --paper:#f7f8fa;
+    --file:#3d6b9e;   /* 파일 단계 */
+    --queue:#b07d2b;  /* 대기열 */
+    --worker:#4a7c59; /* 워커/처리 */
+    --lock:#8a4f6d;   /* 락 */
+    --risk:#b3423a;   /* 미확정/주의 */
+    --mono:'SF Mono',ui-monospace,Consolas,monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;padding:36px 20px 60px;font-size:14px;line-height:1.65}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:23px;font-weight:800;letter-spacing:-.02em}
+  .sub{color:#5a6675;font-size:13px;margin:6px 0 30px}
+  .sub code{font-family:var(--mono);background:#e9edf2;padding:1px 6px;border-radius:4px;font-size:12px}
+
+  section{background:#fff;border:1px solid #e3e8ee;border-radius:14px;padding:28px 30px;margin-bottom:24px}
+  h2{font-size:16px;font-weight:800;margin-bottom:6px}
+  h2 .tag{font-family:var(--mono);font-size:11px;font-weight:600;color:#fff;border-radius:4px;padding:2px 8px;vertical-align:2px;margin-right:9px}
+  .desc{font-size:13px;color:#5a6675;margin-bottom:22px}
+
+  /* ── 1. 세로 스텝 흐름 ── */
+  .steps{display:flex;flex-direction:column;gap:0}
+  .step{display:flex;gap:18px;position:relative;padding-bottom:26px}
+  .step:last-child{padding-bottom:0}
+  .step::before{content:'';position:absolute;left:21px;top:46px;bottom:4px;width:2px;background:#dde3ea}
+  .step:last-child::before{display:none}
+  .stepnum{flex:0 0 44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;z-index:1}
+  .stepbody{flex:1;padding-top:2px}
+  .stepbody h3{font-size:14.5px;font-weight:800;margin-bottom:4px}
+  .stepbody p{font-size:13.5px;color:#3d4756}
+  .chip{display:inline-block;font-size:11.5px;font-weight:700;border-radius:5px;padding:2px 9px;margin:8px 6px 0 0}
+  .chip.ok{background:#e8f1ec;color:#2f6b4f}
+  .chip.warn{background:#fbeeee;color:var(--risk)}
+  .chip.info{background:#e9eef5;color:#33557e}
+  .btn-demo{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:3px 12px;background:var(--ink);color:#fff;margin:0 2px}
+
+  /* ── 2. 스냅샷 예시 ── */
+  .snapshot{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+  .col{flex:1;min-width:280px}
+  .col h4{font-size:13px;font-weight:800;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #eef1f5}
+  .col h4 .sq{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+
+  .job{border:1.5px solid #e3e8ee;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;background:#fff}
+  .job .no{font-family:var(--mono);font-size:12px;font-weight:700;color:#8593a3;flex:0 0 22px}
+  .job .acct{font-family:var(--mono);font-size:12px;font-weight:800;border-radius:5px;padding:2px 8px;flex:0 0 auto}
+  .acct.a{background:#e3ecf6;color:#2d5583}
+  .acct.b{background:#f3e9d9;color:#8a6420}
+  .job .what{font-size:13px;font-weight:600;flex:1}
+  .job .st{font-size:11.5px;font-weight:800;border-radius:5px;padding:3px 9px;white-space:nowrap}
+  .st.run{background:var(--worker);color:#fff}
+  .st.wait{background:#f0e6d2;color:#7a5a1e}
+  .job.running{border-color:var(--worker);background:#f4f9f6}
+  .job .why{font-size:11.5px;color:#8593a3;width:100%;padding-left:34px;margin-top:-4px}
+  .jobwrap{margin-bottom:2px}
+  .jobwrap .why{font-size:11.5px;color:#98684a;padding:2px 4px 8px 36px}
+
+  .wk{border:1.5px dashed #cfd6de;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;color:#98a3b1;font-size:13px}
+  .wk.busy{border-style:solid;border-color:var(--worker);background:#f4f9f6;color:var(--ink)}
+  .wk .wname{font-family:var(--mono);font-size:12px;font-weight:700;flex:0 0 52px}
+  .wk .lockpill{margin-left:auto;font-size:11.5px;font-weight:800;color:#fff;background:var(--lock);border-radius:5px;padding:3px 9px;white-space:nowrap}
+
+  .keypoint{margin-top:22px;border-left:4px solid var(--queue);background:#fbf7ef;border-radius:0 10px 10px 0;padding:14px 18px}
+  .keypoint b{color:#7a5a1e}
+  .keypoint p{font-size:13px;color:#3d4756;margin-top:4px}
+
+  /* ── 3. 상태 전이 ── */
+  .flowline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .pill{font-size:13.5px;font-weight:800;color:#fff;border-radius:999px;padding:8px 22px;white-space:nowrap}
+  .pill.q{background:var(--queue)}.pill.r{background:var(--worker)}.pill.s{background:#2f6b4f}.pill.f{background:var(--risk)}.pill.e{background:#3d4756}
+  .pill.ghost{background:#fff;color:var(--queue);border:2px dashed var(--queue)}
+  .arr{color:#8593a3;font-size:15px;font-weight:700;white-space:nowrap}
+  .arr small{display:block;font-size:11px;font-weight:600;color:#98a3b1;text-align:center}
+  .branch{margin:6px 0 6px 26px;padding-left:20px;border-left:2px dotted #cfd6de}
+  .branch .flowline{margin-bottom:10px}
+  .snote{font-size:12.5px;color:#5a6675;margin-left:8px}
+
+  /* ── 4. Q&A ── */
+  .qa{border-bottom:1px solid #eef1f5;padding:13px 2px}
+  .qa:last-child{border-bottom:none}
+  .qa .q{font-weight:800;font-size:13.5px}
+  .qa .q::before{content:'Q. ';color:var(--file)}
+  .qa .a{font-size:13px;color:#3d4756;margin-top:3px}
+  .qa .a::before{content:'A. ';color:var(--worker);font-weight:800}
+  .open{color:var(--risk);font-weight:700}
+  footer{font-size:11px;color:#98a3b1;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>전자신고 큐 — 동작 구조 정리</h1>
+  <p class="sub">근거: <code>[P11-PLN]20260722 전자신고 큐 PRD</code> · 한 건이 흘러가는 순서 → 대기열이 실제로 도는 모습 → 상태값 전이</p>
+
+  <!-- ═══════════ 1. 한 건의 여정 ═══════════ -->
+  <section>
+    <h2><span class="tag" style="background:var(--file)">1</span>한 건의 여정 — 파일 제작부터 완료까지</h2>
+    <p class="desc">담당자 입장에서 신고 한 건이 흘러가는 순서. 핵심은 <b>계정은 ①에서 이미 정해지고</b>, <b>줄은 ②에서 서기 시작한다</b>는 것.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="stepnum" style="background:var(--file)">1</div>
+        <div class="stepbody">
+          <h3>파일 제작 — 작성 단계에서 재계산 실행</h3>
+          <p>재계산을 실행하면 전자파일(DAT)이 생성된다. <b>이 순간 시스템이 가장 한가한 홈택스 계정을 골라 파일 안에 새긴다(이후 변경 불가)</b>. 파일은 DB에 저장만 되고, 아직 대기열에는 들어가지 않는다.</p>
+          <span class="chip info">홈택스 미접속 단계 — 여러 건 동시 제작해도 충돌 없음</span>
+          <span class="chip info">계정 배정 기준: 계정별 대기+진행 건수 최소</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="stepnum" style="background:var(--ink)">2</div>
+        <div class="stepbody">
+          <h3>담당자 요청 — 버튼을 누르는 순간 줄을 선다</h3>
+          <p>담당자가 <span class="btn-demo">검증하기</span> 또는 <span class="btn-demo">전자파일 제출</span>을 누르면 그 건이 대기열에 적재된다 (상태: <b>대기</b>). 두 버튼은 분리된 액션이고, <b>제출은 검증을 통과한 건만 누를 수 있다</b>(대기열이 아니라 버튼 단에서 막음).</p>
+          <span class="chip ok">적재 후엔 자리를 비워도 됨 — 워커가 알아서 처리 (비동기)</span>
+          <span class="chip warn">검증 성공 ≠ 제출 완료 — 제출은 별도로 다시 요청해야 함</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="stepnum" style="background:var(--worker)">3</div>
+        <div class="stepbody">
+          <h3>워커 처리 — 빈 워커가 "락 안 걸린 계정"의 건을 집어간다</h3>
+          <p>워커(기본 5개, 설정으로 확장)는 특정 계정 전담이 아니다. 대기열을 앞에서부터 훑다가 <b>지금 락이 안 걸린 계정의 건</b>을 만나면 집어간다. 집는 순간 그 계정에 락 🔒이 걸리고 (상태: <b>진행중</b>), 같은 계정의 나머지 건들은 락이 풀릴 때까지 대기열에 그대로 남는다. 계정이 다른 건들끼리는 동시에 병렬로 돈다.</p>
+          <span class="chip info">홈택스 연동은 폴링 — 완료 응답이 올 때까지 반복 확인</span>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="stepnum" style="background:#2f6b4f">4</div>
+        <div class="stepbody">
+          <h3>완료 — 락 반납, 다음 건 진행</h3>
+          <p><b>검증</b>은 홈택스 완료 응답 수신이 기준, <b>제출</b>은 접수번호를 받아야만 성공이다. 성공이든 실패든 끝나면 락은 반드시 반납된다 — <b>정상 완료 / 무응답·유실 / 타임아웃 / 실패</b> 4가지 경우 모두. 락이 풀리면 그 계정의 다음 대기 건이 이어서 진행된다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 2. 대기열 스냅샷 ═══════════ -->
+  <section>
+    <h2><span class="tag" style="background:var(--queue)">2</span>대기열이 실제로 도는 모습 — 계정 2개(A·B), 5건 적재 예시</h2>
+    <p class="desc">어느 한 순간을 캡처한 그림. 같은 "대기"라도 <b>이유가 두 가지</b>라는 점이 이 구조의 핵심이다.</p>
+
+    <div class="snapshot">
+      <!-- 대기열 -->
+      <div class="col">
+        <h4><span class="sq" style="background:var(--queue)"></span>대기열 (도착순)</h4>
+
+        <div class="jobwrap">
+          <div class="job running">
+            <span class="no">①</span><span class="acct a">계정A</span>
+            <span class="what">검증</span><span class="st run">진행중</span>
+          </div>
+          <div class="why">→ 워커1이 집어감 · 이 순간 계정A에 락 🔒</div>
+        </div>
+
+        <div class="jobwrap">
+          <div class="job">
+            <span class="no">②</span><span class="acct a">계정A</span>
+            <span class="what">제출</span><span class="st wait">대기</span>
+          </div>
+          <div class="why">순번은 ③보다 앞이지만 계정A가 락 상태 → <b>락이 풀릴 때까지 대기</b></div>
+        </div>
+
+        <div class="jobwrap">
+          <div class="job running">
+            <span class="no">③</span><span class="acct b">계정B</span>
+            <span class="what">검증</span><span class="st run">진행중</span>
+          </div>
+          <div class="why">→ 워커2가 ②를 건너뛰고 집어감 (계정B는 락 없음) · 계정B 락 🔒</div>
+        </div>
+
+        <div class="jobwrap">
+          <div class="job">
+            <span class="no">④</span><span class="acct a">계정A</span>
+            <span class="what">검증</span><span class="st wait">대기</span>
+          </div>
+          <div class="why">계정A 락 대기 — ①이 끝나면 ② → ④ 순서로 진행</div>
+        </div>
+
+        <div class="jobwrap">
+          <div class="job">
+            <span class="no">⑤</span><span class="acct b">계정B</span>
+            <span class="what">제출</span><span class="st wait">대기</span>
+          </div>
+          <div class="why">계정B 락 대기 — ③이 끝나야 진행</div>
+        </div>
+      </div>
+
+      <!-- 워커풀 -->
+      <div class="col">
+        <h4><span class="sq" style="background:var(--worker)"></span>워커풀 (기본 5개)</h4>
+        <div class="wk busy"><span class="wname">워커 1</span> ① 계정A · 검증 처리 중 <span class="lockpill">A 락 🔒</span></div>
+        <div class="wk busy"><span class="wname">워커 2</span> ③ 계정B · 검증 처리 중 <span class="lockpill">B 락 🔒</span></div>
+        <div class="wk"><span class="wname">워커 3</span> 유휴 — 집을 수 있는 건 없음</div>
+        <div class="wk"><span class="wname">워커 4</span> 유휴 — 남은 건 전부 락 걸린 계정</div>
+        <div class="wk"><span class="wname">워커 5</span> 유휴</div>
+
+        <div class="keypoint">
+          <b>"대기"의 두 가지 이유</b>
+          <p>1) <b>워커 배정 전 대기</b> — 방금 적재돼 아직 아무 워커도 안 집은 상태.<br>
+          2) <b>락 대기</b> — 워커는 놀고 있어도, 같은 계정의 앞 건이 진행 중이라 집을 수 없는 상태 (위의 ②·④·⑤).<br>
+          상태값은 둘 다 "대기"로 같고, 화면 순번도 도착순 그대로 표기된다. 그래서 <b>내 순번보다 뒷 건이 먼저 처리되는 것은 정상 동작</b>이다.</p>
+        </div>
+
+        <div class="keypoint" style="border-left-color:var(--worker);background:#f2f8f4">
+          <b style="color:#2f6b4f">락이 풀리는 순간</b>
+          <p>①이 완료되면 → A 락 반납 → 유휴 워커가 곧바로 ②를 집어감 (같은 계정 내에서는 먼저 온 순서대로). 동시 처리량은 결국 <b>계정 수</b>가 상한이고, 워커 수는 그걸 받쳐주는 일손이다 — 계정보다 워커가 많으면 남는 워커는 놀고, 적으면 전체가 느려진다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 3. 상태값 전이 ═══════════ -->
+  <section>
+    <h2><span class="tag" style="background:var(--worker)">3</span>상태값 전이 — 대기 / 진행중 / 성공 / 실패 / 종결</h2>
+    <p class="desc">기본 흐름은 한 줄이고, 갈림길은 아래 세 가지뿐이다.</p>
+
+    <div class="flowline">
+      <span class="pill q">대기</span>
+      <span class="arr">⟶<small>워커 획득 · 계정 락</small></span>
+      <span class="pill r">진행중</span>
+      <span class="arr">⟶<small>처리 종료 · 락 반납</small></span>
+      <span class="pill s">성공</span>
+      <span class="arr">/</span>
+      <span class="pill f">실패</span>
+    </div>
+
+    <div class="branch">
+      <div class="flowline">
+        <span class="pill s">성공</span><span class="snote">이 <b>제출</b>(접수번호 수신)이면</span>
+        <span class="arr">⟶</span><span class="pill e">종결</span>
+        <span class="snote open">※ 종결 후 재작업 시 취하서 절차는 미확정 (리스크 B)</span>
+      </div>
+      <div class="flowline">
+        <span class="pill s">성공</span><span class="snote">이 <b>검증</b>(완료 응답)이면 — 끝이 아니다. 담당자가 제출 버튼을 눌러</span>
+        <span class="arr">⟶</span><span class="pill q">대기</span>
+        <span class="snote">로 재진입 (자동으로 이어지지 않음)</span>
+      </div>
+      <div class="flowline">
+        <span class="pill f">실패</span><span class="snote">는 사유 기록 후 <b>수동 재시도</b> — 앞단계 수정 → 파일 재제작 →</span>
+        <span class="arr">⟶</span><span class="pill q">대기</span>
+        <span class="snote">재적재 · 딜ID로 동일 건 중복 식별 (자동 재시도 없음)</span>
+      </div>
+      <div class="flowline">
+        <span class="pill q">대기</span><span class="snote">중일 때만</span>
+        <span class="arr">⟶</span><span class="pill ghost">취소 (상태값 변경)</span>
+        <span class="snote">— 진행중부터는 중단 불가</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 4. 자주 헷갈리는 포인트 ═══════════ -->
+  <section>
+    <h2><span class="tag" style="background:var(--lock)">4</span>자주 헷갈리는 포인트</h2>
+    <div class="qa">
+      <div class="q">워커 5개면 5건이 동시에 돌아가나?</div>
+      <div class="a">계정 수만큼만 동시에 돈다. 계정이 2개면 워커가 5개여도 동시 처리는 2건이 최대다. 계정이 늘면 워커 수 설정만 올리면 된다(구조 변경 불필요).</div>
+    </div>
+    <div class="qa">
+      <div class="q">내 건보다 늦게 올라온 건이 먼저 끝났다. 버그인가?</div>
+      <div class="a">정상이다. 화면 순번은 도착순 표기일 뿐, 실제 처리는 계정 락 상황을 따라간다. 같은 계정 안에서는 반드시 먼저 온 순서대로 처리된다.</div>
+    </div>
+    <div class="qa">
+      <div class="q">검증하기 눌러놓고 퇴근해도 되나?</div>
+      <div class="a">된다. 비동기 구조라 워커가 정해진 시간까지 알아서 처리한다. 단, 검증 성공해도 제출은 자동으로 이어지지 않으므로 제출은 별도로 요청해야 한다.</div>
+    </div>
+    <div class="qa">
+      <div class="q">잘못 올린 건 어떻게 하나?</div>
+      <div class="a">대기 중이면 취소 가능. 진행중이면 끝날 때까지 중단 불가. 값을 고치려면 앞단계 수정 → 파일 재제작 → 재적재이며, 딜ID로 동일 건임을 식별한다. <span class="open">진행 중 건의 앞단계 수정을 어디부터 막을지는 미확정(리스크 A)</span>.</div>
+    </div>
+  </section>
+
+  <footer>[P11-PLN]20260722 전자신고 큐 PRD 기반 · 화면/UI 상세는 하위 기획안 · 자동 재시도/계정 관리 화면/공통 모듈화는 v1.0 비목표</footer>
+</div>
+</body>
+</html>
